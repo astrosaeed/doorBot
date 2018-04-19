@@ -1,0 +1,6 @@
+<launch>
+<include file="$(find bwi_launch)/launch/segbot_csu.launch" />
+<include file="$(find freenect_launch)/launch/freenect.launch" />
+
+
+</launch>

@@ -1,0 +1,128 @@
+#! /home/saeid/.virtualenvs/keras_tf/bin/python
+
+
+import rospy
+from pcl_perception.srv import *
+from std_msgs.msg import Float32
+from geometry_msgs.msg import Twist
+
+xarray=[]
+darray=[]
+
+def predict_client(Xlist,Ylist):
+	rospy.wait_for_service('predict')
+	try:
+		predict_list = rospy.ServiceProxy('predict', pred)
+		#resp1 = add_list(x,y)
+		resp = predict_list(Xlist, Ylist)
+		return resp.pred
+	except rospy.ServiceException, e:
+		print "Service call failed: %s"%e
+
+
+
+def xcallback(data):
+	#rospy.loginfo(rospy.get_caller_id() + "I heard %s", data.data)
+	xarray.append(data.data)
+	cmd_vel = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
+	 
+	#TurtleBot will stop if we don't keep telling it to move.  How often should we tell it to move? 10 HZ
+	r = rospy.Rate(10);
+
+		# Twist is a datatype for velocity
+	move_cmd = Twist()
+	# let's go forward at 0.2 m/s
+	move_cmd.linear.x = 0.1
+	# let's turn at 0 radians/s
+	move_cmd.angular.z = 0
+	#a=raw_input()
+	# as long as you haven't ctrl + c keeping doing...
+	if len(xarray)==15:
+		print 'hello'
+		Xlist=xarray
+		Ylist=darray
+		a = predict_client(Xlist, Ylist)
+		print 'prediction is ',a
+		if a==0:
+			print('go forward')	
+			
+			cmd_vel.publish(move_cmd)	
+	#print 'len xarray is ',len(xarray)
+
+def dcallback(data):
+	#rospy.loginfo(rospy.get_caller_id() + "I heard %s", data.data)
+	darray.append(data.data)
+	print 'len darray is ',len(darray)
+
+def getdata(datafile):
+
+	fd=open(datafile, 'r')
+	d = fd.readlines()
+	fd.close()
+	
+	#myarray=np.zeros((len(d) -1,1))
+	mylist=[]
+	for i in range(1,len(d)):
+
+		#myarray[i-1,0]= float(d[i])
+		mylist.append(float(d[i]))
+	
+#    return myarray
+	return mylist
+
+def scaler(X, new_length):
+
+	old_indices = np.arange(0,X.shape[0])
+	
+	new_indices = np.linspace(0,X.shape[0]-2,new_length)
+	spl = UnivariateSpline(old_indices,X,k=3,s=0)
+	new_array = spl(new_indices)
+	new_array=new_array.reshape(-1, 1) 
+	#print 'new_array', new_array
+
+
+
+	scaler = preprocessing.MinMaxScaler()
+	array = scaler.fit_transform(new_array)
+	array=array.reshape(1, -1) 
+	
+	return array
+
+
+
+
+
+
+def listener():
+
+	
+	rospy.init_node('saeid_node', anonymous=True)
+
+	rospy.Subscriber("trajx_topic", Float32, xcallback)
+	rospy.Subscriber("trajd_topic", Float32, dcallback)
+	#Xlist=[]
+	#Ylist=[]
+	'''
+	if len(xarray)==15:
+		print 'hello'
+		Xlist=xarray
+		Ylist=darray
+		print predict_client(Xlist, Ylist)
+	'''
+	# spin() simply keeps python from exiting until this node is stopped
+	rospy.spin()
+
+
+def main():
+		  
+#	Xlist = getdata('pclx.txt')
+#	Ylist = getdata('pcld.txt')
+	listener()
+
+
+	
+	
+
+if __name__=="__main__":
+
+	main()
