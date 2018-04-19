@@ -59,7 +59,7 @@ bool visualize = false;
 bool calibrate_plane = false;
 
 const std::string data_topic = "nav_kinect/depth_registered/points"; 
-const std::string classifier_location = "/home/bwi/catkin_ws/src/bwi_experimental/pcl_perception/data/classifier.yaml";
+const std::string classifier_location = "/home/saeid/catkin_ws/src/doorBot/data/classifier.yaml";
 const std::string node_name = "segbot_people_detector";
 
 //true if Ctrl-C is pressed
@@ -143,7 +143,7 @@ int main (int argc, char** argv)
 	string param_classifier;
 	nh.param<std::string>(std::string("background_person_detector/classifier_location"), 
 							param_classifier, 
-							ros::package::getPath("pcl_perception")+"/data/classifier.yaml");
+							ros::package::getPath("doorBot")+"/data/classifier.yaml");
 	
 	
 	string param_sensor_frame_id;
@@ -187,7 +187,7 @@ int main (int argc, char** argv)
 
 	//load ground plane coeffs
 	ground_coeffs.resize(4);
-	string plane_coefs_location = ros::package::getPath("pcl_perception")+"/data/ground_plane_avg.txt";
+	string plane_coefs_location = ros::package::getPath("doorBot")+"/data/ground_plane_avg.txt";
 	ground_coeffs = load_vector_from_file(plane_coefs_location.c_str(),4);
        
 
@@ -362,13 +362,13 @@ int main (int argc, char** argv)
 						
 
 						stringstream ss;
-						ss << ros::package::getPath("pcl_perception") << "/data/human_kinect_" << nowTime.toNSec() << ".pcd";
+						ss << ros::package::getPath("doorBot") << "/data/human_kinect_" << nowTime.toNSec() << ".pcd";
 						pcl::io::savePCDFileASCII (ss.str(), *person_cloud);
 					
 						//save cloud in map frame of reference
 						pcl::fromROSMsg(person_cloud_ros,*person_cloud);
 						ss.str(std::string());
-						ss << ros::package::getPath("pcl_perception") << "/data/human_map_" << nowTime.toNSec() << ".pcd";
+						ss << ros::package::getPath("doorBot") << "/data/human_map_" << nowTime.toNSec() << ".pcd";
 						pcl::io::savePCDFileASCII (ss.str(), *person_cloud);
 						
 						stampOut.pose.position.z = 0.7;

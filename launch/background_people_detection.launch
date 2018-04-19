@@ -5,7 +5,7 @@
 	<param name="visualize" value="true" />
 	<param name="rate" value="4.0" />
 	<param name="rgbd_topic" value = "/camera/depth_registered/points"/>
-	<param name="classifier_location" value = "$(find pcl_perception)/data/classifier.yaml"/>
+	<param name="classifier_location" value = "$(find doorBot)/data/classifier.yaml"/>
 	
 	<!-- when publishing the detected poses, which frame id should they be in -->
 	<param name="out_frame_id" value = "/map"/>
