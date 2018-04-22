@@ -2,9 +2,35 @@
 
 
 import rospy
-from pcl_perception.srv import *
+import actionlib
+from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
+from doorBot.srv import *
 from std_msgs.msg import Float32
-from geometry_msgs.msg import Twist
+from geometry_msgs.msg import Twist,PoseStamped
+from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import Point
+
+
+def moveToGoal(xGoal,yGoal):
+        ac = actionlib.SimpleActionClient("move_base", MoveBaseAction)
+
+        while(not ac.wait_for_server(rospy.Duration.from_sec(5.0))):
+            rospy.loginfo("Waiting for move_base action server to respond")
+
+        goal = MoveBaseGoal()
+
+        goal.target_pose.header.frame_id = "map"
+        goal.target_pose.header.stamp = rospy.Time.now()
+
+        goal.target_pose.pose.position = Point(xGoal,yGoal,0)
+        goal.target_pose.pose.orientation.x = 0.0
+        goal.target_pose.pose.orientation.y = 0.0
+        goal.target_pose.pose.orientation.z = 0.0
+        goal.target_pose.pose.orientation.w = 1.0
+        rospy.loginfo("Sending goal...")
+        ac.send_goal(goal)
+
+        ac.wait_for_result(rospy.Duration(20))
 
 xarray=[]
 darray=[]
@@ -45,8 +71,8 @@ def xcallback(data):
 		print 'prediction is ',a
 		if a==0:
 			print('go forward')	
-			
-			cmd_vel.publish(move_cmd)	
+			moveToGoal(humanx,humany)
+#			cmd_vel.publish(move_cmd)	
 	#print 'len xarray is ',len(xarray)
 
 def dcallback(data):
@@ -89,8 +115,11 @@ def scaler(X, new_length):
 	return array
 
 
-
-
+def posecallback(data):
+	global humanx
+	global humany 	
+	humanx=data.pose.position.x
+	humany=data.pose.position.y
 
 
 def listener():
@@ -100,6 +129,7 @@ def listener():
 
 	rospy.Subscriber("trajx_topic", Float32, xcallback)
 	rospy.Subscriber("trajd_topic", Float32, dcallback)
+	rospy.Subscriber("segbot_pcl_person_detector/human_poses", PoseStamped, posecallback)
 	#Xlist=[]
 	#Ylist=[]
 	'''

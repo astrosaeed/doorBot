@@ -25,7 +25,7 @@ from scipy.interpolate import UnivariateSpline
 
 #from addlist.msg import foo
 import rospy
-from pcl_perception.srv import *
+from doorBot.srv import *
 
 
 
@@ -72,7 +72,7 @@ def scaler(X, new_length):
 	return array
 
 def handle_prediction(req):
-	mymodel = loadmodel('iter72.h5')
+	mymodel = loadmodel('/home/saeid/catkin_ws/src/doorBot/src/iter72.h5')
 	X=np.asarray(req.a)
 	Y=np.asarray(req.b)
 	print X
