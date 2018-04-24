@@ -34,25 +34,6 @@ def loadmodel(modelfile):
 
 	return model
 
-
-
-'''
-def getdata(datafile):
-
-	fd=open(datafile, 'r')
-	d = fd.readlines()
-	fd.close()
-	
-	myarray=np.zeros((len(d) -1,1))
-
-	for i in range(1,len(d)):
-
-		myarray[i-1,0]= float(d[i])
-
-	
-	return myarray
-'''
-
 def scaler(X, new_length):
 
 	old_indices = np.arange(0,X.shape[0])
@@ -85,8 +66,11 @@ def handle_prediction(req):
 		newarray[0,2*i+1]=Y[0,i]
 	print 'new_array shape',newarray.shape
 	predictions = mymodel.predict(newarray, verbose=1)
-	print predictions
-	return predictions
+	binarizer = Binarizer(threshold=0.1).fit(predictions)
+	binary1=binarizer.transform(predictions)
+	print 
+        del mymodel
+	return binary1[0,0]
 
 
 def main():

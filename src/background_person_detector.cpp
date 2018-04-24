@@ -163,7 +163,8 @@ int main (int argc, char** argv)
 	ros::Publisher trajdpub = nh.advertise<std_msgs::Float32>("trajd_topic", 10);
 	ros::Publisher globalxpub = nh.advertise<std_msgs::Float32>("trajx_topic", 10);
 	ros::Publisher globaldpub = nh.advertise<std_msgs::Float32>("trajd_topic", 10);
-
+	ros::Publisher marker_pub_2 = nh.advertise<visualization_msgs::Marker>("visualization_marker", 10);
+	float f = 0.0;
 
 
 	std_msgs::Float32 trajmsgx; 
@@ -245,6 +246,23 @@ int main (int argc, char** argv)
 		ros::spinOnce();
 		
 		r.sleep();
+visualization_msgs::Marker points;
+    points.header.frame_id  = "/map";
+    points.header.stamp = ros::Time::now();
+    points.ns = "points_and_lines";
+    points.action =visualization_msgs::Marker::ADD;
+    points.pose.orientation.w = 1.0;
+    points.id = 0;
+    points.type = visualization_msgs::Marker::POINTS;
+    points.scale.x = 0.1;
+    points.scale.y = 0.1;
+    // Points are green
+    points.color.g = 1.0f;
+    points.color.a = 1.0;
+
+
+
+
 		
 		if (new_cloud_available_flag && cloud_mutex.try_lock ())    // if a new cloud is available
 		{
@@ -336,9 +354,9 @@ int main (int argc, char** argv)
 						pose_i.orientation = tf::createQuaternionMsgFromRollPitchYaw(0,0,-3.14/2);
 						
 						trajmsgx.data = centroid_k[0];
-						cout<<"x is "<<centroid_k[0]<<endl;
+					//	cout<<"x is "<<centroid_k[0]<<endl;
                                         outfilex << centroid_k[0]  << endl;
-	                                cout<<"distance is "<<centroid_k[2]<<endl;
+	                               // cout<<"distance is "<<centroid_k[2]<<endl;
                                         outfiled << centroid_k[2]  << endl;
                     	trajxpub.publish(trajmsgx);
                     	trajmsgd.data = centroid_k[2];
@@ -382,11 +400,37 @@ int main (int argc, char** argv)
 						//publish the pose
 						stampOut.pose.position.z = 0.0;
 						pose_pub.publish(stampOut);
+						cout<<stampOut.pose.position.x<<endl ;
+						cout<<stampOut.pose.position.y<<endl ;
+						float y = stampOut.pose.position.y;
+					      float z = 0.0 ;
+     						 geometry_msgs::Point p;
+     						 p.x = stampOut.pose.position.x;
+      						p.y = y;
+     						 p.z = z;
+
+     						 points.points.push_back(p);
+
+  //  marker_pub.publish(points);
+
+ //   r.sleep();
+    
+
+//   						 marker_pub_2.publish(points);
+
 		
 						k++;
 						
 						detection_count++;
-					}	
+					}
+
+  //  marker_pub.publish(points);
+
+ //   r.sleep();
+
+
+                                                 marker_pub_2.publish(points);
+	
 				}	
 			}
 						
