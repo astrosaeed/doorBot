@@ -9,7 +9,11 @@ from geometry_msgs.msg import Twist,PoseStamped
 from geometry_msgs.msg import PoseStamped
 from geometry_msgs.msg import Point
 import csv
-
+import sys
+import roslib; roslib.load_manifest('sound_play')
+from sound_play.msg import SoundRequest
+from sound_play.libsoundplay import SoundClient
+from collections import deque
 from keras.models import Sequential 
 from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
@@ -44,29 +48,25 @@ class classify:
 		rospy.Subscriber("trajd_topic", Float32, self.dcallback)
 		rospy.Subscriber("segbot_pcl_person_detector/human_poses", PoseStamped, self.posecallback)
 		self.mymodel=load_model('/home/saeid/catkin_ws/src/doorBot/src/iter53.h5')
-		self.xarray=[]
-		self.darray=[]
+		self.detected=False
+		soundhandle=SoundClient()
+		s='OK OK'
+		self.xarray=deque(15*[0], 15)
+		self.darray=deque(15*[0], 15)
 		self.flag=False
 		self.cmd_vel = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
 		self.r=rospy.Rate(5)
-		# Twist is a datatype for velocity
 		self.move_cmd = Twist()
-		# let's go forward at 0.2 m/s
 		self.move_cmd.linear.x = 0.1
-		# let's turn at 0 radians/s
 		self.move_cmd.angular.z = 0
-		#a=raw_input()
-		# as long as you haven't ctrl + c keeping doing...
 
 		while not rospy.is_shutdown():
-			if len(self.xarray)==15:
-				print 'hello'
+			#if len(self.xarray)==15:
+			while self.detected:
+				print 'human detected'
 				Xlist=self.xarray
 				Ylist=self.darray
 
-#		a = predict_client(Xlist, Ylist)
-		#print 'prediction is ',a
-		#del xarray[:]
 				X=np.asarray(Xlist)
 				Y=np.asarray(Ylist)
 				print X
@@ -83,19 +83,18 @@ class classify:
 				binarizer = Binarizer(threshold=0.1).fit(predictions)
 				binary1=binarizer.transform(predictions)
 				print 'prediction is ',binary1
-				#if a==1:	
 				if binary1==1:
+					soundhandle.say(s)
 					print('go forward')	
 #					self.moveToGoal(humanx,humany)
 					self.cmd_vel.publish(self.move_cmd)
+					self.detected=False
+				elif binary1==0:
+					self.detected=False
+				 
 			self.r.sleep()
-	    # publish the velocity
             		
-	    # wait for 0.1 seconds (10 HZ) and publish again
 	    	
-#global xarray,darray
-#xarray=[]
-#darray=[]
 	def moveToGoal(self,xGoal,yGoal):
         	ac = actionlib.SimpleActionClient("move_base", MoveBaseAction)
 
@@ -133,11 +132,7 @@ class classify:
 	
 		return array
 	def shutdown(self):
-        # stop turtlebot
-        	rospy.loginfo("Stop TurtleBot")
-	# a default Twist has linear.x of 0 and angular.z of 0.  So it'll stop TurtleBot
-        #self.velocity_publisher.publish(Twist())
-	# sleep just makes sure TurtleBot receives the stop command prior to shutting down the script
+        	rospy.loginfo("Stop SegBot")
 		rospy.sleep(1)
 
 
@@ -146,13 +141,7 @@ class classify:
         	#global xarray
 		#xarray=[]
 		self.xarray.append(-1.0*data.data)
-		
-		out = open('xvalues.csv', 'a')
-        	temp=-1.0*float(data.data)
-        	out.write('%f,' % temp)
-    		out.write('\n')
-		out.close()
-		#TurtleBot will stop if we don't keep telling it to move.  How often should we tell it to move? 10 HZ
+		self.detected=True	
 		r = rospy.Rate(10);
 
 		
@@ -164,13 +153,6 @@ class classify:
 	def dcallback(self, data):
 		#rospy.loginfo(rospy.get_caller_id() + "I heard %s", data.data)
 		self.darray.append(-1*data.data)
-		out = open('yvalues.csv', 'a')
-
-        	temp=-1.0*float(data.data)
-        	out.write('%f,' % temp)
-    		out.write('\n')
-		out.close()
-		print 'len darray is ',len(self.darray)
 
 		if len(self.darray)==20:
 			del self.darray[:]
@@ -216,26 +198,13 @@ class classify:
 		humany=data.pose.position.y
 
 
-	def listener(self):
-		pass
-	
-		
-	#Xlist=[]
-	#Ylist=[]
-
-	# spin() simply keeps python from exiting until this node is stopped
-#		rospy.spin()
 
 
 def main():
 		  
-#	Xlist = getdata('pclx.txt')
-#	Ylist = getdata('pcld.txt')
 	classify()
-#	myclass=classify()
-#	myclass.listener()
 
-
+	ros.spin()
 	
 	
 

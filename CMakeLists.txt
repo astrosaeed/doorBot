@@ -13,6 +13,7 @@ add_definitions(${PCL_DEFINITIONS})
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   rospy
+  roslib
   std_msgs
   pcl_conversions
   pcl_ros
@@ -20,6 +21,8 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   geometry_msgs
   message_generation
+  visualization_msgs
+  sound_play
 )
 
 ## System dependencies are found with CMake's conventions
