@@ -9,8 +9,10 @@ from std_msgs.msg import Float32
 from geometry_msgs.msg import Twist,PoseStamped
 from geometry_msgs.msg import PoseStamped
 from geometry_msgs.msg import Point
-
-
+import csv
+global xarray,darray
+xarray=[]
+darray=[]
 def moveToGoal(xGoal,yGoal):
         ac = actionlib.SimpleActionClient("move_base", MoveBaseAction)
 
@@ -32,8 +34,7 @@ def moveToGoal(xGoal,yGoal):
 
         ac.wait_for_result(rospy.Duration(20))
 
-xarray=[]
-darray=[]
+
 
 def predict_client(Xlist,Ylist):
 	rospy.wait_for_service('predict')
@@ -46,12 +47,17 @@ def predict_client(Xlist,Ylist):
 		print "Service call failed: %s"%e
 
 
-
 def xcallback(data):
 	#rospy.loginfo(rospy.get_caller_id() + "I heard %s", data.data)
-	xarray.append(data.data)
+        #global xarray
+	#xarray=[]
+	xarray.append(-1.0*data.data)
 	cmd_vel = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
-	 
+	out = open('xvalues'+str(nowTime)+'.csv', 'a')
+        temp=-1.0*float(data.data)
+        out.write('%f,' % temp)
+    	out.write('\n')
+	out.close()
 	#TurtleBot will stop if we don't keep telling it to move.  How often should we tell it to move? 10 HZ
 	r = rospy.Rate(10);
 
@@ -69,17 +75,29 @@ def xcallback(data):
 		Ylist=darray
 		a = predict_client(Xlist, Ylist)
 		print 'prediction is ',a
-		if a==0:
+		#del xarray[:]
+			
+		if a==1:
 			print('go forward')	
-			moveToGoal(humanx,humany)
-#			cmd_vel.publish(move_cmd)	
+#			moveToGoal(humanx,humany)
+			cmd_vel.publish(move_cmd)
 	#print 'len xarray is ',len(xarray)
+	if len(xarray)==16:
+		del xarray[:]
 
 def dcallback(data):
 	#rospy.loginfo(rospy.get_caller_id() + "I heard %s", data.data)
-	darray.append(data.data)
+	darray.append(-1*data.data)
+	out = open('yvalues.csv', 'a')
+
+        temp=-1.0*float(data.data)
+        out.write('%f,' % temp)
+    	out.write('\n')
+	out.close()
 	print 'len darray is ',len(darray)
 
+	if len(darray)==16:
+		del darray[:]
 def getdata(datafile):
 
 	fd=open(datafile, 'r')
@@ -126,19 +144,13 @@ def listener():
 
 	
 	rospy.init_node('saeid_node', anonymous=True)
+	global nowTime 
+	nowTime=rospy.Time.now()
 
 	rospy.Subscriber("trajx_topic", Float32, xcallback)
 	rospy.Subscriber("trajd_topic", Float32, dcallback)
 	rospy.Subscriber("segbot_pcl_person_detector/human_poses", PoseStamped, posecallback)
-	#Xlist=[]
-	#Ylist=[]
-	'''
-	if len(xarray)==15:
-		print 'hello'
-		Xlist=xarray
-		Ylist=darray
-		print predict_client(Xlist, Ylist)
-	'''
+	
 	# spin() simply keeps python from exiting until this node is stopped
 	rospy.spin()
 
