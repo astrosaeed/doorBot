@@ -1,6 +1,6 @@
 <launch>
 <include file="$(find bwi_launch)/launch/segbot_csu.launch" />
 <include file="$(find freenect_launch)/launch/freenect.launch" />
-
+<node name="soundplay_node" pkg="sound_play" type="soundplay_node.py" />
 
 </launch>

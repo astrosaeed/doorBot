@@ -1,0 +1,7 @@
+<launch>
+<node name="plot" pkg="doorBot" type="plot.py"   />
+<node name="traj" pkg="doorBot" type="trajcsv.py"   />
+<node name="classify" pkg="doorBot" type="classify.py"   />
+
+
+</launch>
