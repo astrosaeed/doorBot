@@ -9,3 +9,9 @@ Project for CIS 693
 pip install catkin_pkg
 pip install rospkg 
 
+5- To start doing an experiment:
+
+	roslaunch doorBot loc_camera.launch
+	roslaunch doorBot background_people_detection.launch
+	roslaunch doorBot savedata.launch
+
