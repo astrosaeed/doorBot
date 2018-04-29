@@ -51,7 +51,7 @@ typedef pcl::PointCloud<PointT> PointCloudT;
 #include <iostream>       // std::cin, std::cout
 #include <queue>          // std::queue
 #include <fstream>
- 
+#include "doorBot/my_msgs.h" 
 
  
 //some constants
@@ -66,7 +66,7 @@ const std::string node_name = "segbot_people_detector";
 bool g_caught_sigint=false;
 
 //refresh rate
-double ros_rate = 10.0;
+double ros_rate = 60.0;
 
 
 Eigen::VectorXf ground_coeffs;
@@ -159,16 +159,17 @@ int main (int argc, char** argv)
 	ros::Publisher marker_pub = nh.advertise<visualization_msgs::Marker>("segbot_pcl_person_detector/marker", 10);
 	ros::Publisher pose_pub = nh.advertise<geometry_msgs::PoseStamped>("segbot_pcl_person_detector/human_poses", 10);
 	ros::Publisher cloud_pub = nh.advertise<sensor_msgs::PointCloud2>("segbot_pcl_person_detector/human_clouds", 10);
-	ros::Publisher trajxpub = nh.advertise<std_msgs::Float32>("trajx_topic", 10);
-	ros::Publisher trajdpub = nh.advertise<std_msgs::Float32>("trajd_topic", 10);
+	ros::Publisher trajpub = nh.advertise<doorBot::my_msgs>("traj_topic", 10);
+	
 	ros::Publisher globalxpub = nh.advertise<std_msgs::Float32>("trajx_topic", 10);
 	ros::Publisher globaldpub = nh.advertise<std_msgs::Float32>("trajd_topic", 10);
 	ros::Publisher marker_pub_2 = nh.advertise<visualization_msgs::Marker>("visualization_marker", 10);
 	float f = 0.0;
 
 
-	std_msgs::Float32 trajmsgx; 
-	std_msgs::Float32 trajmsgd;    
+	//std_msgs::Float32 trajmsgx; 
+	//std_msgs::Float32 trajmsgd;
+	doorBot::my_msgs trajdata;    
 	std_msgs::Float32 globalmsgx; 
 	std_msgs::Float32 globalmsgd;    
 	// Create a ROS subscriber for the input point cloud
@@ -336,8 +337,8 @@ visualization_msgs::Marker points;
 					
 						// draw theoretical person bounding box in the PCL viewer:
 						if (visualize)
-							it->drawTBoundingBox(*viewer_display, k);
-						
+							//it->drawTBoundingBox(*viewer_display, k);
+							it->drawTBoundingBox(*viewer_display, 0);
 						//get just the person out of the whole cloud
 						pcl_utils::applyBoxFilter(it->getMin(), it->getMax(),cloud,person_cloud);
 						
@@ -352,15 +353,15 @@ visualization_msgs::Marker points;
 						pose_i.position.y=0.5;
 						pose_i.position.z=centroid_k(2);
 						pose_i.orientation = tf::createQuaternionMsgFromRollPitchYaw(0,0,-3.14/2);
-						
-						trajmsgx.data = centroid_k[0];
-					//	cout<<"x is "<<centroid_k[0]<<endl;
+						trajdata.x = centroid_k[0];
+					
                                         outfilex << centroid_k[0]  << endl;
-	                               // cout<<"distance is "<<centroid_k[2]<<endl;
+	                             
                                         outfiled << centroid_k[2]  << endl;
-                    	trajxpub.publish(trajmsgx);
-                    	trajmsgd.data = centroid_k[2];
-                    	trajdpub.publish(trajmsgd);
+                    
+                    	trajdata.y = centroid_k[2];
+                    
+                    	trajpub.publish(trajdata);
 						geometry_msgs::PoseStamped stampedPose;
 
 						stampedPose.header.frame_id = param_sensor_frame_id;
@@ -421,7 +422,7 @@ visualization_msgs::Marker points;
 		
 						k++;
 						
-						detection_count++;
+						//detection_count++;
 					}
 
   //  marker_pub.publish(points);

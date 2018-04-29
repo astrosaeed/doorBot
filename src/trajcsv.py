@@ -5,7 +5,7 @@ import csv
 
 from std_msgs.msg import Float32
 import datetime
-
+from doorBot.msg import my_msgs
 class plotclass:
 	def __init__(self):
 		
@@ -13,51 +13,34 @@ class plotclass:
 		self.xarray=[]
 		self.darray=[]
 		
-		#self.nowTime=rospy.Time.now() 
 		self.nowTime=datetime.datetime.now() 
-
-		rospy.Subscriber("trajx_topic", Float32, self.xcallback)
-		rospy.Subscriber("trajd_topic", Float32, self.dcallback)
-		#rospy.spin()
-
-	def xcallback(self,data):
-		#rospy.loginfo(rospy.get_caller_id() + "I heard %s", data.data)
-			#global xarray
-		#xarray=[]
+		self.out = open('/home/saeid/catkin_ws/src/doorBot/Traj/'+str(self.nowTime)+'.csv', 'a')
+		self.out.write('%s,' % 'x')
+		self.out.write('%s,' % 'y(d)')
+		self.out.write('\n')
+		rospy.Subscriber("traj_topic", my_msgs, self.callback)
+		while not rospy.is_shutdown():
+			rospy.loginfo("I am saving trajectories")
+	
+	def callback(self,data):
+	
 		
-		self.xarray.append(-1.0*data.data)
-		out = open('/home/saeid/catkin_ws/src/doorBot/Traj/'+str(self.nowTime)+'x.csv', 'a')
-		temp=-1.0*float(data.data)
-		out.write('%f,' % temp)
-		out.write('\n')
-		out.close()
-
+		self.xarray.append(-1.0*data.x)
+		self.darray.append(-1.0*data.y)
 		
-		
-		#TurtleBot will stop if we don't keep telling it to move.  How often should we tell it to move? 10 HZ
-
-	def dcallback(self,data):
-		#rospy.loginfo(rospy.get_caller_id() + "I heard %s", data.data)
-		self.darray.append(-1*data.data)
-		out = open('/home/saeid/catkin_ws/src/doorBot/Traj/'+str(self.nowTime)+'y.csv', 'a')
-		temp=-1.0*float(data.data)
-		out.write('%f,' % temp)
-		out.write('\n')
-		out.close()
-
-		
+		tempx=-1.0*float(data.x)
+		tempd=-1.0*float(data.y)
+		self.out.write('%f,' % tempx)
+		self.out.write('%f,' % tempd)
+		self.out.write('\n')
 
 	def shutdown(self):
-        # stop turtlebot
-        	rospy.loginfo("Stop TurtleBot")
-
+		# stop turtlebot
+		rospy.loginfo("Stop Saving trajectory")
+		self.out.close()
 		rospy.sleep(1)
 
-
-
-		
-		
-		
+			
 
 def main():
 
