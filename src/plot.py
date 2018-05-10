@@ -5,6 +5,7 @@ import csv
 import matplotlib.pyplot as plt
 from std_msgs.msg import Float32
 import datetime
+from doorBot.msg import my_msgs
 
 class plotclass:
 	def __init__(self):
@@ -12,54 +13,34 @@ class plotclass:
 		rospy.init_node('plot_node', anonymous=True)
 		self.xarray=[]
 		self.darray=[]
+		self.nowTime=datetime.datetime.now()
+		self.filename= '/home/saeid/catkin_ws/src/doorBot/Plots/'+str(self.nowTime)+'.png'
+		rospy.Subscriber("traj_topic", my_msgs, self.callback)
+		#while not rospy.is_shutdown():
+			#self.plot()
+		#	rospy.loginfo('I am plotting')
+	def callback(self,data):
 		
-		#self.nowTime=rospy.Time.now() 
-		self.nowTime=datetime.datetime.now() 
-
-		rospy.Subscriber("trajx_topic", Float32, self.xcallback)
-		rospy.Subscriber("trajd_topic", Float32, self.dcallback)
-		#rospy.spin()
-
-	def xcallback(self,data):
-		#rospy.loginfo(rospy.get_caller_id() + "I heard %s", data.data)
-			#global xarray
-		#xarray=[]
-		print 'len darray is ',len(self.darray)
-		self.xarray.append(-1.0*data.data)
-		if len(self.xarray)==10:
-			self.plot()
-		if len(self.xarray)==18:
-			del self.xarray[:]
+		self.xarray.append(-1.0*data.x)
+		self.darray.append(-1.0*data.y)
+		self.plot()
 		
-		#TurtleBot will stop if we don't keep telling it to move.  How often should we tell it to move? 10 HZ
-
-	def dcallback(self,data):
-		#rospy.loginfo(rospy.get_caller_id() + "I heard %s", data.data)
-		self.darray.append(-1*data.data)
-
-		if len(self.darray)==18:
-			del self.darray[:]
-
+	
 	def shutdown(self):
-        # stop turtlebot
-        	rospy.loginfo("Stop TurtleBot")
-	# a default Twist has linear.x of 0 and angular.z of 0.  So it'll stop TurtleBot
-        #self.velocity_publisher.publish(Twist())
-	# sleep just makes sure TurtleBot receives the stop command prior to shutting down the script
+	   
+		rospy.loginfo("Stop Segbot")
 		rospy.sleep(1)
+		#self.plot()
 
 
 	def plot(self):
-		print ('Hi')
-		
-		print 'bye'
 		plt.plot(0,0,'*')
 		plt.plot(self.xarray,self.darray)
 		plt.xlabel('X values')
 		plt.ylabel('Y values')
 		plt.grid(True)
 		plt.axis((-5,+5,-7,2))
-		plt.savefig('/home/saeid/catkin_ws/src/doorBot/Plots/'+str(self.nowTime)+'.png')
+		plt.savefig(self.filename)
 
 def main():
 

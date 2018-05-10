@@ -39,23 +39,24 @@ from scipy.interpolate import UnivariateSpline
 #from addlist.msg import foo
 import rospy
 from doorBot.srv import *
-
+from doorBot.msg import my_msgs
 class classify:
 	def __init__(self):
 		rospy.init_node('saeid_node', anonymous=True)
 
-		rospy.Subscriber("trajx_topic", Float32, self.xcallback)
-		rospy.Subscriber("trajd_topic", Float32, self.dcallback)
+		#rospy.Subscriber("trajx_topic", Float32, self.xcallback)
+		#rospy.Subscriber("trajd_topic", Float32, self.dcallback)
+		rospy.Subscriber("traj_topic", my_msgs, self.callback)
 		rospy.Subscriber("segbot_pcl_person_detector/human_poses", PoseStamped, self.posecallback)
 		self.mymodel=load_model('/home/saeid/catkin_ws/src/doorBot/src/iter53.h5')
 		self.detected=False
 		soundhandle=SoundClient()
-		s='OK OK'
+		s='How can I help you?'
 		self.xarray=deque(15*[0], 15)
 		self.darray=deque(15*[0], 15)
 		self.flag=False
 		self.cmd_vel = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
-		self.r=rospy.Rate(5)
+		self.r=rospy.Rate(50)
 		self.move_cmd = Twist()
 		self.move_cmd.linear.x = 0.1
 		self.move_cmd.angular.z = 0
@@ -63,13 +64,13 @@ class classify:
 		while not rospy.is_shutdown():
 			#if len(self.xarray)==15:
 			while self.detected:
-				print 'human detected'
+				rospy.loginfo("Human Detected")
 				Xlist=self.xarray
 				Ylist=self.darray
 
 				X=np.asarray(Xlist)
 				Y=np.asarray(Ylist)
-				print X
+				print X 
 				X=self.scaler(X,30)         #probably rnage of scaling should be same as training data
 				Y=self.scaler(Y,30)
 				print 'X shape is ',X.shape
@@ -89,6 +90,9 @@ class classify:
 #					self.moveToGoal(humanx,humany)
 					self.cmd_vel.publish(self.move_cmd)
 					self.detected=False
+
+					self.xarray=deque(15*[0], 15)
+					self.darray=deque(15*[0], 15)
 				elif binary1==0:
 					self.detected=False
 				 
@@ -135,7 +139,17 @@ class classify:
         	rospy.loginfo("Stop SegBot")
 		rospy.sleep(1)
 
+	def callback(self, data):
+		#rospy.loginfo(rospy.get_caller_id() + "I heard %s", data.data)
+        	#global xarray
+		#xarray=[]
+		self.xarray.append(-1.0*data.x)
+		self.darray.append(-1.0*data.y)
 
+		self.detected=True	
+		r = rospy.Rate(30);
+
+	'''
 	def xcallback(self, data):
 		#rospy.loginfo(rospy.get_caller_id() + "I heard %s", data.data)
         	#global xarray
@@ -156,6 +170,7 @@ class classify:
 
 		if len(self.darray)==20:
 			del self.darray[:]
+	'''
 	def getdata(self,datafile):
 
 		fd=open(datafile, 'r')

@@ -19,8 +19,8 @@ class plotclass:
 		self.out.write('%s,' % 'y(d)')
 		self.out.write('\n')
 		rospy.Subscriber("traj_topic", my_msgs, self.callback)
-		while not rospy.is_shutdown():
-			rospy.loginfo("I am saving trajectories")
+		#while not rospy.is_shutdown():
+		#	a=1                     
 	
 	def callback(self,data):
 	
