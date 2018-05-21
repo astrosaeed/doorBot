@@ -1,0 +1,23 @@
+person ={human_1 ,human_2}.
+time = {rush, break}.
+location={at_entrance,at_exit}.
+decision = {interested, not_interested}.
+
+atlocation:person -> location. 
+intention: person -> decision.
+
+#domain person(P).
+#domain time(T).
+#domain location(L).
+#domain decision(D).
+
+[rp] random (person).
+[rl(P)] random(atlocation(P)).  
+[rt(T)] random(T).
+[rd(D)] random(intention(D)).
+
+[rd(D)] pr(intention(P)=interested | time=break)= 0.6.
+[rd(D)] pr(intention(P)=interested | atlocation(P)=at_entrance)= 0.7.
+[rd(D)] pr(intention(P)=not_interested | atlocation(P)=at_exit)= 0.9.
+
+
