@@ -1,23 +1,26 @@
-person ={human_1 ,human_2}.
+%person ={human_1}.
 time = {rush, break}.
 location={at_entrance,at_exit}.
 decision = {interested, not_interested}.
 
-atlocation:person -> location. 
-intention: person -> decision.
+atlocation : location. 
+currenttime : time. 
+intention: time,location -> decision.
 
-#domain person(P).
+%#domain person(P).
 #domain time(T).
 #domain location(L).
 #domain decision(D).
 
-[rp] random (person).
-[rl(P)] random(atlocation(P)).  
-[rt(T)] random(T).
-[rd(D)] random(intention(D)).
+%[rp] random (person).
+[rl] random(atlocation).  
+[rt] random(currenttime).
+[rd(T,L)] random(intention(T,L)).
 
-[rd(D)] pr(intention(P)=interested | time=break)= 0.6.
-[rd(D)] pr(intention(P)=interested | atlocation(P)=at_entrance)= 0.7.
-[rd(D)] pr(intention(P)=not_interested | atlocation(P)=at_exit)= 0.9.
+[rd(T,L)] pr(intention(T,L)=interested | currenttime=break)= 8/10.
+[rd(T,L)] pr(intention(T,L)=interested | atlocation=at_entrance)= 7/10.
+%[rd(T,L)] pr(intention(T,L)=not_interested | atlocation=at_exit)= 9/10.
 
 
+?{intention(break,at_entrance)=interested}| obs(currenttime=break) . 
+%?{intention(break,at_entrance)=interested}. 
