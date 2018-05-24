@@ -2,6 +2,9 @@
 from parser import Policy
 from pomdp_parser import Model
 import numpy as np
+from random import randint
+
+
 class Simulator:
 	def __init__(self, pomdpfile='program.pomdp'):
 		
@@ -22,18 +25,29 @@ class Simulator:
 			
 		return b
 
-	#def update(self, a_idx, ):
-	#		belief= T*O/normalizer
+	def random_observe(self):
+		l=len(self.model.observations)-1
+		o_idx=randint(0,l)
+		print ('random observation is: ',self.model.observations[o_idx])
+		return o_idx
+
+#	def update(self, a_idx,o_idx,b ):
+#			belief= T*O/normalizer
 
 	def run(self):
 		#self.init_state=random(states)
-		b=self.init_belief() 
+		b=self.init_belief()
+		print ( 'b shape is,', b.shape )
+		print b 
 		a_idx=self.policy.select_action(b)
 		a = self.model.actions[a_idx]
-		type(a)
-		print('action selected',a)
 		
-	#	update(a_idx)
+		print('action selected',a)
+		o_idx = self.random_observe()
+		print ('transition matrix shape is', self.model.trans_mat.shape)
+		print self.model.trans_mat[0,:,:]
+		print ('observation matrix shape is', self.model.obs_mat.shape)
+#		update(a_idx,o_idx, b)
 
 def main():
 
