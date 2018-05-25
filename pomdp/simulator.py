@@ -9,11 +9,11 @@ import random
 class Simulator:
 	def __init__(self, pomdpfile='program.pomdp'):
 		
-		self.init_state=None
+		
 		
 		self.model = Model(filename='program.pomdp', parsing_print_flag=False)
 		self.policy = Policy(5,4 ,output='program.policy')
-		
+		print self.model.states		
 
 	def init_belief(self):
 		l = len(self.model.states)
@@ -27,15 +27,29 @@ class Simulator:
 		return b
 
 
+	def get_state_index(self,state):
+
+		return self.model.states.index(state)
+
+
+	def init_state(self):
+		state=random.choice(['not_forward_not_interested','not_forward_interested'])
+		print state
+		s_idx = self.get_state_index(state)
+		print s_idx
+		return s_idx
+
 	def get_obs_index(self, obs):
 
 		return self.model.observations.index(obs)
 
+	
+
 	def random_observe(self, a_idx):
 		if self.model.actions[a_idx]=='move_forward':
-			obs=random.choice(['physical','no_physical','na'])
+			obs=random.choice(['physical','no_physical'])
 		elif self.model.actions[a_idx]=='greet':
-			obs=random.choice(['verbal','no_verbal','na'])
+			obs=random.choice(['verbal','no_verbal'])
 		else:
 			obs = 'na'
 		#l=len(self.model.observations)-1
@@ -53,19 +67,20 @@ class Simulator:
 
 	def update(self, a_idx,o_idx,b ):
 		b = np.dot(b, self.model.trans_mat[a_idx, :])
-		print b
+		
 		b = [b[i] * self.model.obs_mat[a_idx, i, o_idx] for i in range(len(self.model.states))]
-		print b
+		
 		b = b / sum(b)
 		return b
 
 	def run(self):
-		#self.init_state=random(states)
-		b=self.init_belief()
-		print ( 'b shape is,', b.shape )
-		print b
+		s_idx = self.init_state()
+		b = self.init_belief()
+		cost =0
+		#print ( 'b shape is,', b.shape )
+		#print b
 
-		for i in range(1): 
+		while True: 
 			a_idx=self.policy.select_action(b)
 			a = self.model.actions[a_idx]
 		
@@ -76,9 +91,14 @@ class Simulator:
 			#print self.model.trans_mat[a_idx,:,:]
 			#print ('observation matrix shape is', self.model.obs_mat.shape)
 			#print self.model.trans_mat[a_idx,:,:]
-		
+			print s_idx
+			cost = cost + self.model.reward_mat[a_idx,s_idx]
+			print ('cost is,' , cost)		
 			b =self.update(a_idx,o_idx, b)
 			print b
+			if 'report' in a:
+				print ('finished ')
+				break
 
 def main():
 
