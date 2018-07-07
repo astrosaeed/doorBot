@@ -15,7 +15,7 @@ class Reason:
 		lines = temp.splitlines()
 		prob = lines[3].split()[2]
 		print "\n{intention("+time+","+location+")="+intention+"| obs("+observation+")}=" ,prob
-
+		return prob
 	def delete(self,filename):
 
 		#deleting the query line for future use

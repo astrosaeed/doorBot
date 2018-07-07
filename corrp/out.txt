@@ -19,8 +19,12 @@ show intention(T,L,X_).
 pa(rd(T,L),intention(T,L,interested),di_(8,10)):-currenttime(break).
 pa(rd(T,L),intention(T,L,interested),di_(7,10)):-atlocation(at_entrance).
 :- not currenttime(break).
+:- not currenttime(break).
+:- not currenttime(break).
 
 hide.
 show pd(X,Y).
 show pa(X,Y,Z).
-show intention(break,at_entrance,not_interested).
+show intention(break,at_entrance,interested).
+show intention(break,at_entrance,interested).
+show intention(rush,at_entrance,interested).

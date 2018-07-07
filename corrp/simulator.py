@@ -4,6 +4,7 @@ from pomdp_parser import Model
 import numpy as np
 from random import randint
 import random
+from reason import Reason
 
 
 class Simulator:
@@ -16,6 +17,7 @@ class Simulator:
 		print self.model.states		
 
 	def init_belief(self):
+			
 		l = len(self.model.states)
 		b = np.zeros(l)
 

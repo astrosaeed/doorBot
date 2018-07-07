@@ -68,7 +68,7 @@ Duration: 0.000
 Number of choice points: 31
 Number of wrong choices: 31
 Number of atoms: 51
-Number of rules: 57
+Number of rules: 59
 Number of picked atoms: 145
 Number of forced atoms: 0
 Number of truth assignments: 404
