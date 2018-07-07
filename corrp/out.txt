@@ -1,0 +1,26 @@
+time(rush).
+time(break).
+location(at_entrance).
+location(at_exit).
+decision(interested).
+decision(not_interested).
+#domain time(T).
+#domain location(L).
+#domain decision(D).
+1{atlocation(X_):location(X_)}1:-not intervene(atlocation).
+pd(rl,atlocation(X_)):-not intervene(atlocation),location(X_).
+show atlocation(X_).
+1{currenttime(X_):time(X_)}1:-not intervene(currenttime).
+pd(rt,currenttime(X_)):-not intervene(currenttime),time(X_).
+show currenttime(X_).
+1{intention(T,L,X_):decision(X_)}1:-not intervene(intention(T,L)).
+pd(rd(T,L),intention(T,L,X_)):-not intervene(intention(T,L)),decision(X_).
+show intention(T,L,X_).
+pa(rd(T,L),intention(T,L,interested),di_(8,10)):-currenttime(break).
+pa(rd(T,L),intention(T,L,interested),di_(7,10)):-atlocation(at_entrance).
+:- not currenttime(break).
+
+hide.
+show pd(X,Y).
+show pa(X,Y,Z).
+show intention(break,at_entrance,not_interested).

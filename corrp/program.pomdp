@@ -1,0 +1,78 @@
+discount: 0.99
+values: reward
+states: not_forward_not_interested not_forward_interested forward_not_interested forward_interested term
+actions: move_forward greet report_interested report_not_interested
+observations: verbal no_verbal physical no_physical na
+
+start: uniform
+
+T: move_forward 
+0.0 0.0 0.8 0.2 0.0
+0.0 0.0 0.2 0.8 0.0
+0.0 0.0 0.0 0.0 1.0
+0.0 0.0 0.0 1.0 0.0
+0.0 0.0 0.0 0.0 1.0
+
+T: greet 
+0.8 0.2 0.0 0.0 0.0
+0.0 1.0 0.0 0.0 0.0
+0.0 0.0 0.8 0.2 0.0
+0.0 0.0 0.0 1.0 0.0
+0.0 0.0 0.0 0.0 1.0
+
+T: report_interested 
+0.0 0.0 0.0 0.0 1.0
+0.0 0.0 0.0 0.0 1.0
+0.0 0.0 0.0 0.0 1.0
+0.0 0.0 0.0 0.0 1.0
+0.0 0.0 0.0 0.0 1.0
+
+T: report_not_interested
+0.0 0.0 0.0 0.0 1.0
+0.0 0.0 0.0 0.0 1.0
+0.0 0.0 0.0 0.0 1.0
+0.0 0.0 0.0 0.0 1.0
+0.0 0.0 0.0 0.0 1.0
+
+O: move_forward 
+0.0 0.0 0.0 0.0 1.0
+0.0 0.0 0.0 0.0 1.0
+0.0 0.0 0.1 0.9 0.0
+0.0 0.0 0.9 0.1 0.0
+0.0 0.0 0.0 0.0 1.0
+
+O: greet
+0.2 0.8 0.0 0.0 0.0
+0.8 0.2 0.0 0.0 0.0
+0.0 0.0 0.0 0.0 1.0
+0.0 0.0 0.0 0.0 1.0
+0.0 0.0 0.0 0.0 1.0
+
+O: report_interested
+0.0 0.0 0.0 0.0 1.0
+0.0 0.0 0.0 0.0 1.0
+0.0 0.0 0.0 0.0 1.0
+0.0 0.0 0.0 0.0 1.0
+0.0 0.0 0.0 0.0 1.0
+
+
+O: report_not_interested
+0.0 0.0 0.0 0.0 1.0
+0.0 0.0 0.0 0.0 1.0
+0.0 0.0 0.0 0.0 1.0
+0.0 0.0 0.0 0.0 1.0
+0.0 0.0 0.0 0.0 1.0
+
+R: * : * : * : * 0.0
+R: move_forward : * : * : *  -3.0 
+R: greet : * : * : *  -1.0 
+R: report_interested: not_forward_not_interested : * : *  -30.0
+R: report_interested: not_forward_interested : * : *  30.0  
+R: report_interested: forward_not_interested : * : *  -30.0
+R: report_interested: forward_interested : * : *  30.0
+R: report_interested: term : * : *  0.0  
+R: report_not_interested: not_forward_not_interested : * : *  30.0
+R: report_not_interested: not_forward_interested : * : *  -30.0  
+R: report_not_interested: forward_not_interested : * : *  30.0
+R: report_not_interested: forward_interested : * : *  -30.0  
+R: report_not_interested: term : * : *  0.0  
