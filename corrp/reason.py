@@ -27,14 +27,21 @@ class Reason:
 		w.close()
 
 def main():
-	a=Reason()
-	time =['rush', 'break']
-	location=['at_entrance','at_exit']
+	a = Reason()
+	time = ['rush', 'break']
+	location = ['at_entrance','at_exit']
 	decision = ['interested', 'not_interested']
+	obs  = ['currenttime=','atlocation=']
+	
 
-	for i in range(20):
-		#a.query('reason.plog',random.choice(decision),random.choice(time),random.choice(location),'currenttime='+random.choice(time))
-		a.query('reason.plog',random.choice(decision),random.choice(time),random.choice(location),'atlocation='+random.choice(location))
+	for i in range(30):
+		obs_rand =random.choice(obs)
+		time_rand = random.choice(time)
+		loc_rand = random.choice(location)
+		if obs_rand =='currenttime=': 
+			a.query('reason.plog',random.choice(decision), time_rand,random.choice(location),'currenttime=' + time_rand)
+		elif obs_rand =='atlocation=':
+			a.query('reason.plog',random.choice(decision),time_rand,loc_rand,'atlocation='+ loc_rand)
 		a.delete('reason.plog')	
 
 	#a.query('reason.plog','interested','rush','at_entrance','currenttime=rush')
