@@ -99,31 +99,52 @@ class Simulator:
 			b =self.update(a_idx,o_idx, b)
 			print b
 			success=0
+			tp=0
+			tn=0
+			fp=0
+			fn=0
 			
 			if 'report' in a:
 				if 'not_interested' in a and 'not_interested' in temp:
 					success= 1
+					tn=1
 					print 'Trial was successfull'
 				elif 'report_interested' in a and 'forward_interested' in temp:
 					success= 1
+					tp=1
 					print 'Trial was successful'
+				elif 'report_interested' in a and 'forward_not_interested' in temp:
+					fp=1
+					print 'Trial was unsuccessful'
+				elif 'not_interested' in a and 'forward_interested' in temp:
+					fn=1
+
 				print ('finished ')
 				break
 
-		return cost, success
+		return cost, success, tp, tn, fp, fn
 
 
 	def trial_num(self, num):
-		total_success=0
-		total_cost=0
+		total_success = 0
+		total_cost = 0
+		total_tp = 0
+		total_tn = 0
+		total_fp = 0
+		total_fn = 0
 		for i in range(num):
-			a,b=self.run()
-			total_cost+=a
-			total_success+=b
+			c, s, tp, tn, fp, fn=self.run()
+			total_cost+=c
+			total_success+=s
+			total_tp+=tp
+			total_tn+=tn
+			total_fp+=fp
+			total_fn+=fn
 
 		print 'Average total reward is:', total_cost/num
 		print 'Average total success is: ', float(total_success)/num
-
+		print 'Precision is ',float(total_tp)/(total_tp + total_fp)
+		print 'Recall is ', float(total_tp)/(total_tp + total_fn)
 def main():
 	Solver()
 	a=Simulator()
