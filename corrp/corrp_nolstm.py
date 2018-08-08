@@ -25,17 +25,18 @@ class Corrp():
 		self.obj=Reason()
 		time = ['(currenttime=morning)', '(currenttime=afternoon)', '(currenttime=evening)']
 		location = ['(atlocation=classroom)','(atlocation=library)']
-		#lstm = ['(classifier=zero)','(classifier=one)']
+		lstm = ['(classifier=zero)','(classifier=one)']
 		decision = ['interested', 'not_interested']
+		
 
 		time_rand = random.choice(time)
 		loc_rand = random.choice(location)
-		#lstm_rand = random.choice(lstm)
-		lstm_rand = self.lstm()
+		lstm_rand = random.choice(lstm)
 
-		int_prob= float(self.obj.query('reason.plog',self.decision, time_rand,lstm_rand, loc_rand))
+
+		int_prob= float(self.obj.query_nolstm('reason_nolstm.plog',self.decision, time_rand, loc_rand))
 	
-		self.obj.delete('reason.plog')
+		self.obj.delete('reason_nolstm.plog')
 		print int_prob
 		
 		init_belief = [1.0 - int_prob, int_prob, 1.0 - int_prob, int_prob, 0]
@@ -50,13 +51,13 @@ class Corrp():
 		#state=random.choice(['not_forward_not_interested','not_forward_interested'])
 		self.decision =random.choice(['interested','not_interested'])
 		print 'the random decision is:', self.decision
-		self.time=random.choice(['morning','afternoon','evening'])
+		self.time=random.choice(['morning','afternoon', 'evening'])
 		print 'The random time is ', self.time
 		self.location=random.choice(['library','classroom'])
 		print 'The random location is : ', self.location
-		self.lstm()
 		
-		print 'The classifier output is: ', self.classifier	
+		
+			
  
 
 		if self.decision == 'interested':		
@@ -126,24 +127,15 @@ class Corrp():
 
 
 	def lstm(self):
-		predone = [1,1,1,1,1,1,1,0,0,0]
-		prezero = [0,0,0,0,0,0,0,1,1,1]
-		if self.decision == 'interested':
-			if random.choice(predone) ==1:
-				self.classifier = 'one'
-				return '(classifier=one)'
-			else:
-				self.classifier = 'zero'
-				return '(classifier=zero)'
+		pred = [0.0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9]
+		#pred_int = [0.9,1.0]
+		#pred_not_int = [0.0,0.1,0.2]
+		if random.choice(pred) >= 0.5:
+			self.suplearn = 1
+			self.classifier = 'one'
 		else:
-			if random.choice(predone) ==1:
-				self.classifier = 'one'
-				return '(classifier=one)'
-			else:
-				self.classifier = 'zero'
-				return '(classifier=zero)'
-			#self.suplearn = 0
-			#self.classifier = 'zero'
+			self.suplearn = 0
+			self.classifier = 'zero'
 	def run(self):
 
 		s_idx,temp = self.init_state()

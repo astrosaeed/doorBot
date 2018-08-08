@@ -6,16 +6,29 @@ class Reason:
 		pass		
 		
 
-	def query(self,filename,intention,time,location,observation):
+	def query(self,filename,intention,time,location,lstm):
 		#appending the query line at the end of the plog file
 		f = open(filename, 'a+')
-		f.write("\n?{intention("+time+","+location+")="+intention+"}| obs("+observation+") .")
+		f.write("\n?{intention="+intention+"}|obs"+time+",obs"+location+",obs"+lstm+".")
 		f.close()
 		temp = subprocess.check_output('plog -t '+filename, shell=True)
 		lines = temp.splitlines()
 		prob = lines[3].split()[2]
-		print "\n{intention("+time+","+location+")="+intention+"| obs("+observation+")}=" ,prob
+		print "\n{intention="+intention+"|obs"+time+", obs"+location+",obs"+lstm+". =" ,prob
 		return prob
+
+
+	def query_nolstm(self,filename,intention,time,location):
+		#appending the query line at the end of the plog file
+		f = open(filename, 'a+')
+		f.write("\n?{intention="+intention+"}|obs"+time+",obs"+location+".")
+		f.close()
+		temp = subprocess.check_output('plog -t '+filename, shell=True)
+		lines = temp.splitlines()
+		prob = lines[3].split()[2]
+		print "\n{intention="+intention+"|obs"+time+", obs"+location+". =" ,prob
+		return prob
+
 	def delete(self,filename):
 
 		#deleting the query line for future use
@@ -28,21 +41,25 @@ class Reason:
 
 def main():
 	a = Reason()
-	time = ['rush', 'break']
-	location = ['at_entrance','at_exit']
+	time = ['(currenttime=morning)', '(currenttime=afternoon)', '(currenttime=evening)']
+	location = ['(atlocation=classroom)','(atlocation=library)']
+	lstm = ['(classifier=zero)','(classifier=one)']
 	decision = ['interested', 'not_interested']
-	obs  = ['currenttime=','atlocation=']
+	obs  = ['currenttime=','atlocation=','classifier=']
+
+
 	
 
 	for i in range(30):
-		obs_rand =random.choice(obs)
+		
 		time_rand = random.choice(time)
 		loc_rand = random.choice(location)
-		if obs_rand =='currenttime=': 
-			a.query('reason.plog',random.choice(decision), time_rand,random.choice(location),'currenttime=' + time_rand)
-		elif obs_rand =='atlocation=':
-			a.query('reason.plog',random.choice(decision),time_rand,loc_rand,'atlocation='+ loc_rand)
-		a.delete('reason.plog')	
+		lstm_rand = random.choice(lstm)
+		
+		a.query('reason.plog',random.choice(decision), time_rand,lstm_rand, loc_rand)
+		a.delete('reason.plog')
+
+			
 
 	#a.query('reason.plog','interested','rush','at_entrance','currenttime=rush')
 	#a.delete('reason.plog')

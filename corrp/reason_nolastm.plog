@@ -2,14 +2,14 @@
 time = {morning, afternoon, evening}.
 location={library,classroom}.
 decision = {interested, not_interested}.
-lstm = {one, zero}.
+
 person = {student, professor, visitor}.
 
 atlocation :location. 
 currenttime : time.
 %currenttime : decision -> time.
 %classifier: decision -> lstm.
-classifier: lstm. 
+
 intention: decision.
 identity: person.
 
@@ -24,7 +24,7 @@ identity: person.
 
 [rl] random(atlocation).  
 [rt] random(currenttime).
-[rs] random(classifier).
+
 [rd] random(intention).
 [ri] random(identity).
 
@@ -47,16 +47,111 @@ identity: person.
 [rl] pr(atlocation = library | identity = visitor) = 3/10.
 
 [rd] pr(intention = interested | identity = student) = 3/10.
-[rd] pr(intention = interested | identity = professor) = 1/10.
-[rd] pr(intention = interested | identity = visitor) = 9/10.
 
-[rs] pr(classifier = one | identity = student) = 3/10.
-[rs] pr(classifier = one | identity = professor) = 1/10.
-[rs] pr(classifier = one | identity = visitor) = 9/10.
+[rd] pr(intention = interested | identity = professor, classifier) = 1/10.
+
+[rd] pr(intention = interested | identity = visitor, classifier) = 9/10.
+
+
 
 %?{intention=interested}| obs(classifier = one).
-%?{intention=interested}| obs(atlocation = classroom),obs(currenttime = evening), obs(classifier=one).
+%?{intention=interested}| obs(atlocation = classroom),obs(currenttime = evening).
 %?{intention=interested}| obs(currenttime = break). 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

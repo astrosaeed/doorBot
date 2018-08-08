@@ -1,0 +1,18 @@
+boolean = {t, f}.
+
+arsenic, death: boolean.
+
+[r(1)] random (arsenic).
+[r(2)] random (death).
+
+
+[r(2)] pr(death = t | arsenic = t) = 4/5.
+[r(2)] pr(death = t | arsenic = f) = 1/10.
+
+
+%The query:
+%?{arsenic = t}.
+?{arsenic = t} | obs(death = t).
+
+%?{arsenic = t} | do(death = t).
+                                

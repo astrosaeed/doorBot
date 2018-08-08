@@ -1,0 +1,22 @@
+life = { death, notdeath}.
+poision={arsenic,notarsenic}.
+
+currentpoison : poision. 
+%currentlife : poison ->life.
+currentlife : life.
+
+#domain life(L).
+#domain poision(P).
+
+[rl] random(currentlife).  
+[rp] random(currentpoison).
+
+%[rl(P)] pr(currentlife(P)=death | currentpoision=arsenic)= 8/10.
+%[rl(P)] pr(currentlife(P)=death | currentpoision=notarsenic)= 1/100.
+%[rp(P)] pr(currentpoision=arsenic)= 4/10.
+
+[rl(L)] pr(currentlife(L)=death | currentpoision=arsenic)= 8/10.
+[rl(L)] pr(currentlife(L)=death | currentpoision=notarsenic)= 1/100.
+[rp(P)] pr(currentpoision=arsenic)= 4/10.
+
+?{currentpoision(P)=arsenic}| obs(currentlife=death). 
