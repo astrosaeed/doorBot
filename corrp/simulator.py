@@ -10,11 +10,54 @@ from reason import Reason
 class Simulator:
 	def __init__(self, pomdpfile='program.pomdp'):
 		
+		self.time = ['morning','afternoon','evening']
+		self.location = ['classroom','library']
+		self.identity = ['student','professor','visitor'] 
+		self.intention =['interested','not_interested']
+		self.reason =Reason('reason.plog')
+		#self.model = Model(filename='program.pomdp', parsing_print_flag=False)
+		#self.policy = Policy(5,4 ,output='program.policy')
+		#print self.model.states
+	def sample (self, alist, distribution):
+
+		return np.random.choice(alist, p=distribution)
+
+	def create_instance(self):
+		instance= []
+
+		person = random.choice(self.identity)
+		print ('sampled from identity with uniform prob distribution ')
+		print ('identity is:'), person
+		if person == 'student':
+			place =self.sample(self.location,[0.4,0.6])
+			time =self.sample(self.time,[0.4,0.4,0.2])
+			intention =self.sample(self.intention,[0.3,0.7])
+		elif person == 'professor':
+			place =self.sample(self.location,[0.9,0.1])
+			time =self.sample(self.time,[0.5,0.4,0.1])
+			intention =self.sample(self.intention,[0.1,0.9])
+		else:
+			place = self.sample(self.location,[0.7,0.3])
+			time =self.sample(self.time,[0.2,0.7,0.1])
+			intention =self.sample(self.intention,[0.9,0.1])
+
+		print ('based on identity, our instance is')
 		
-		
-		self.model = Model(filename='program.pomdp', parsing_print_flag=False)
-		self.policy = Policy(5,4 ,output='program.policy')
-		print self.model.states		
+		instance.append(person)
+		instance.append(time)
+		instance.append(place)
+		instance.append(intention)
+		print (instance[0],instance[1],instance[2], instance[3])
+		return instance
+
+
+	def observe_fact(self):
+
+		time = random.choice(self.time)
+		location = random.choice (self.location)
+		print ('observed time: '),time
+		print ('observed location: '),location
+		return time, location
 
 	def init_belief(self):
 			
@@ -61,11 +104,6 @@ class Simulator:
 		return o_idx
 
 	
-	#def update(self, a_idx,o_idx,b ):
-	#	temp = np.matmul(self.model.trans_mat[0,:,:],self.model.obs_mat[0,:,:])
-	#	temp = np.matmul(b,temp)
-	#	b = temp/np.sum(temp)
-	#	return b
 
 	def update(self, a_idx,o_idx,b ):
 		b = np.dot(b, self.model.trans_mat[a_idx, :])
@@ -76,6 +114,9 @@ class Simulator:
 		return b
 
 	def run(self):
+		time, location =self.observe_fact() 	
+		prob = self.reason.query_nolstm(time, location)
+		print ('PROB is :'), prob
 		s_idx,temp = self.init_state()
 		b = self.init_belief()
 		cost =0
@@ -148,7 +189,7 @@ class Simulator:
 def main():
 	Solver()
 	a=Simulator()
-	print a.trial_num(300)
+	a.run()
 
 
 

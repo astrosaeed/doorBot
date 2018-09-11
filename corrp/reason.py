@@ -2,40 +2,42 @@ import subprocess
 import random
 
 class Reason:
-	def __init__(self):
+	def __init__(self,filename):
 		pass		
-		
+		self.filename=filename
 
-	def query(self,filename,intention,time,location,lstm):
+	def query(self,time,location,lstm):
 		#appending the query line at the end of the plog file
-		f = open(filename, 'a+')
-		f.write("\n?{intention="+intention+"}|obs"+time+",obs"+location+",obs"+lstm+".")
+		f = open(self.filename, 'a+')
+		f.write("\n?{intention=interested}|obs(currenttime="+time+"),obs(atlocation="+location+",obs"+lstm+".")
 		f.close()
-		temp = subprocess.check_output('plog -t '+filename, shell=True)
+		temp = subprocess.check_output('plog -t '+self.filename, shell=True)
 		lines = temp.splitlines()
 		prob = lines[3].split()[2]
-		print "\n{intention="+intention+"|obs"+time+", obs"+location+",obs"+lstm+". =" ,prob
+		print "\n{intention=interested|obs"+time+", obs"+location+",obs"+lstm+". =" ,prob
+		self.delete()
 		return prob
 
 
-	def query_nolstm(self,filename,intention,time,location):
+	def query_nolstm(self,time,location):
 		#appending the query line at the end of the plog file
-		f = open(filename, 'a+')
-		f.write("\n?{intention="+intention+"}|obs"+time+",obs"+location+".")
+		f = open(self.filename, 'a+')
+		f.write("\n?{intention=interested}|obs(currenttime="+time+"),obs(atlocation="+location+").")
 		f.close()
-		temp = subprocess.check_output('plog -t '+filename, shell=True)
+		temp = subprocess.check_output('plog -t '+self.filename, shell=True)
 		lines = temp.splitlines()
 		prob = lines[3].split()[2]
-		print "\n{intention="+intention+"|obs"+time+", obs"+location+". =" ,prob
+		print "\n{intention=interested|obs"+time+", obs"+location+". =" ,prob
+		self.delete()
 		return prob
 
-	def delete(self,filename):
+	def delete(self):
 
 		#deleting the query line for future use
-		readFile = open(filename)
+		readFile = open(self.filename)
 		lines = readFile.readlines()
 		readFile.close()
-		w = open(filename,'w')
+		w = open(self.filename,'w')
 		w.writelines([item for item in lines[:-1]])
 		w.close()
 
@@ -57,7 +59,7 @@ def main():
 		lstm_rand = random.choice(lstm)
 		
 		a.query('reason.plog',random.choice(decision), time_rand,lstm_rand, loc_rand)
-		a.delete('reason.plog')
+		#a.delete('reason.plog')
 
 			
 
