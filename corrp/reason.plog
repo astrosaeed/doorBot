@@ -56,7 +56,19 @@ identity: person.
 
 %?{intention=interested}| obs(classifier = one).
 %?{intention=interested}| obs(atlocation = classroom),obs(currenttime = evening), obs(classifier=one).
-?{intention=interested}| obs(currenttime = morning). 
+%?{intention=interested}| obs(currenttime = morning). 
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

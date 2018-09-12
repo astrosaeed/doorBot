@@ -15,9 +15,11 @@ class Simulator:
 		self.identity = ['student','professor','visitor'] 
 		self.intention =['interested','not_interested']
 		self.reason =Reason('reason.plog')
-		#self.model = Model(filename='program.pomdp', parsing_print_flag=False)
-		#self.policy = Policy(5,4 ,output='program.policy')
-		#print self.model.states
+		self.model = Model(filename='program.pomdp', parsing_print_flag=False)
+		self.policy = Policy(5,4 ,output='program.policy')
+
+
+
 	def sample (self, alist, distribution):
 
 		return np.random.choice(alist, p=distribution)
@@ -26,8 +28,8 @@ class Simulator:
 		instance= []
 
 		person = random.choice(self.identity)
-		print ('sampled from identity with uniform prob distribution ')
-		print ('identity is:'), person
+		print ('\nLet\'s uniformly sample from [student, visitor, professor] : '), person
+#		print ('identity is:'), person
 		if person == 'student':
 			place =self.sample(self.location,[0.4,0.6])
 			time =self.sample(self.time,[0.4,0.4,0.2])
@@ -41,33 +43,40 @@ class Simulator:
 			time =self.sample(self.time,[0.2,0.7,0.1])
 			intention =self.sample(self.intention,[0.9,0.1])
 
-		print ('based on identity, our instance is')
+		print ('Given the probabilty distribution for '+person+', we sample from time, location and intention.')
 		
 		instance.append(person)
 		instance.append(time)
 		instance.append(place)
 		instance.append(intention)
+		print ('Our instance would be (trajectory will be added soon): ')
 		print (instance[0],instance[1],instance[2], instance[3])
 		return instance
 
 
 	def observe_fact(self):
-
+		print '\nNow, we randomly (uniform) make observations of time and location:'
 		time = random.choice(self.time)
 		location = random.choice (self.location)
 		print ('observed time: '),time
 		print ('observed location: '),location
 		return time, location
 
-	def init_belief(self):
+	def init_belief(self, int_prob):
 			
 		l = len(self.model.states)
 		b = np.zeros(l)
 
 		# initialize the beliefs of the states with index=0 evenly
 		
-		for i in range(l):
-			b[i] = 1.0/l
+		int_prob =float(int_prob)
+		init_belief = [1.0 - int_prob, int_prob, 1.0 - int_prob, int_prob, 0]
+		b = np.zeros(len(init_belief))
+		for i in range(len(init_belief)):
+			b[i] = init_belief[i]/sum(init_belief)
+		print 'The initial belief would be: '
+		print b
+		return b
 			
 		return b
 
@@ -79,9 +88,9 @@ class Simulator:
 
 	def init_state(self):
 		state=random.choice(['not_forward_not_interested','not_forward_interested'])
-		print state
+		print 'Randomly selected state from [not_forward_not_interested,not_forward_interested] =',state
 		s_idx = self.get_state_index(state)
-		print s_idx
+		#print s_idx
 		return s_idx, state
 
 	def get_obs_index(self, obs):
@@ -114,11 +123,16 @@ class Simulator:
 		return b
 
 	def run(self):
+		self.create_instance()
 		time, location =self.observe_fact() 	
 		prob = self.reason.query_nolstm(time, location)
-		print ('PROB is :'), prob
+		#print ('PROB is :'), prob
+
+		print '\nOur POMDP Model states are: '
+		print self.model.states
+
 		s_idx,temp = self.init_state()
-		b = self.init_belief()
+		b = self.init_belief(prob)
 		cost =0
 		#print ( 'b shape is,', b.shape )
 		#print b
@@ -134,7 +148,7 @@ class Simulator:
 			#print self.model.trans_mat[a_idx,:,:]
 			#print ('observation matrix shape is', self.model.obs_mat.shape)
 			#print self.model.trans_mat[a_idx,:,:]
-			print s_idx
+			#print s_idx
 			cost = cost + self.model.reward_mat[a_idx,s_idx]
 			print ('Total reward is,' , cost)		
 			b =self.update(a_idx,o_idx, b)
@@ -187,6 +201,7 @@ class Simulator:
 		print 'Precision is ',float(total_tp)/(total_tp + total_fp)
 		print 'Recall is ', float(total_tp)/(total_tp + total_fn)
 def main():
+	Print 'startegies are [reasoning, corrp, LSTM+corrp]'
 	Solver()
 	a=Simulator()
 	a.run()
