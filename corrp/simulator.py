@@ -17,7 +17,8 @@ class Simulator:
 		self.reason =Reason('reason.plog')
 		self.model = Model(filename='program.pomdp', parsing_print_flag=False)
 		self.policy = Policy(5,4 ,output='program.policy')
-
+		self.instance = []
+		self.results={}
 
 
 	def sample (self, alist, distribution):
@@ -25,7 +26,7 @@ class Simulator:
 		return np.random.choice(alist, p=distribution)
 
 	def create_instance(self):
-		instance= []
+		
 
 		person = random.choice(self.identity)
 		print ('\nLet\'s uniformly sample from [student, visitor, professor] : '), person
@@ -45,13 +46,13 @@ class Simulator:
 
 		print ('Given the probabilty distribution for '+person+', we sample from time, location and intention.')
 		
-		instance.append(person)
-		instance.append(time)
-		instance.append(place)
-		instance.append(intention)
+		self.instance.append(person)
+		self.instance.append(time)
+		self.instance.append(place)
+		self.instance.append(intention)
 		print ('Our instance would be (trajectory will be added soon): ')
-		print (instance[0],instance[1],instance[2], instance[3])
-		return instance
+		print (self.instance[0],self.instance[1],self.instance[2], self.instance[3])
+		return self.instance
 
 
 	def observe_fact(self):
@@ -74,7 +75,7 @@ class Simulator:
 		b = np.zeros(len(init_belief))
 		for i in range(len(init_belief)):
 			b[i] = init_belief[i]/sum(init_belief)
-		print 'The initial belief would be: '
+		print 'The normalized initial belief would be: '
 		print b
 		return b
 			
@@ -122,90 +123,154 @@ class Simulator:
 		b = b / sum(b)
 		return b
 
-	def run(self):
-		self.create_instance()
-		time, location =self.observe_fact() 	
+	def run(self, strategy,time,location):
+		#self.create_instance()
+		#time, location =self.observe_fact()	
 		prob = self.reason.query_nolstm(time, location)
 		#print ('PROB is :'), prob
-
-		print '\nOur POMDP Model states are: '
-		print self.model.states
-
-		s_idx,temp = self.init_state()
-		b = self.init_belief(prob)
+		success=0
+		tp=0
+		tn=0
+		fp=0
+		fn=0
 		cost =0
-		#print ( 'b shape is,', b.shape )
-		#print b
 
-		while True: 
-			a_idx=self.policy.select_action(b)
-			a = self.model.actions[a_idx]
-		
-			print('action selected',a)
+		if strategy == 'corrp':
+			print '\nOur POMDP Model states are: '
+			print self.model.states
 
-			o_idx = self.random_observe(a_idx)
-			#print ('transition matrix shape is', self.model.trans_mat.shape)
-			#print self.model.trans_mat[a_idx,:,:]
-			#print ('observation matrix shape is', self.model.obs_mat.shape)
-			#print self.model.trans_mat[a_idx,:,:]
-			#print s_idx
-			cost = cost + self.model.reward_mat[a_idx,s_idx]
-			print ('Total reward is,' , cost)		
-			b =self.update(a_idx,o_idx, b)
-			print b
-			success=0
-			tp=0
-			tn=0
-			fp=0
-			fn=0
+			s_idx,temp = self.init_state()
+			b = self.init_belief(prob)
 			
-			if 'report' in a:
-				if 'not_interested' in a and 'not_interested' in temp:
-					success= 1
-					tn=1
-					print 'Trial was successfull'
-				elif 'report_interested' in a and 'forward_interested' in temp:
-					success= 1
-					tp=1
-					print 'Trial was successful'
-				elif 'report_interested' in a and 'forward_not_interested' in temp:
-					fp=1
-					print 'Trial was unsuccessful'
-				elif 'not_interested' in a and 'forward_interested' in temp:
-					fn=1
+			#print ( 'b shape is,', b.shape )
+			#print b
 
-				print ('finished ')
-				break
+			while True: 
+				a_idx=self.policy.select_action(b)
+				a = self.model.actions[a_idx]
+			
+				print('action selected',a)
 
+				o_idx = self.random_observe(a_idx)
+				#print ('transition matrix shape is', self.model.trans_mat.shape)
+				#print self.model.trans_mat[a_idx,:,:]
+				#print ('observation matrix shape is', self.model.obs_mat.shape)
+				#print self.model.trans_mat[a_idx,:,:]
+				#print s_idx
+				cost = cost + self.model.reward_mat[a_idx,s_idx]
+				print ('Total reward is,' , cost)		
+				b =self.update(a_idx,o_idx, b)
+				print b
+				
+				
+				if 'report' in a:
+					if 'not_interested' in a and 'not_interested' == self.instance[3]:
+						success= 1
+						tn=1
+						print 'Trial was successfull'
+					elif 'report_interested' in a and 'interested' == self.instance[3]:
+						success= 1
+						tp=1
+						print 'Trial was successful'
+					elif 'report_interested' in a and 'not_interested' == self.instance[3]:
+						fp=1
+						print 'Trial was unsuccessful'
+					elif 'not_interested' in a and 'interested' == self.instance[3]:
+						fn=1
+
+					print ('Finished\n ')
+					
+					break
+
+		if strategy == 'reasoning':
+			print '\n Strategy is: ', strategy
+			print 'RECAP: our instance is: '
+			print self.instance
+			print ('RECAP:observed time: '),time
+			print ('RECAP:observed location: '),location
+			print ('probability of person being ineterested given the observed facts: '), prob
+			threshold = 0.5
+			prob=float(prob)
+			if prob>= threshold and 'interested' == self.instance[3] :
+				success = 1
+				print ('This probability is greater than threshold ='+str(threshold)+', therefore reasoner says human HAS intention')
+				print 'Trial was successful'
+				tp=1
+			elif prob>= threshold and 'not_interested' == self.instance[3]:
+				success=0
+				fp=1
+				print ('This probability is greater than threshold ='+str(threshold)+', therefore reasoner says human HAS intention')
+				print 'Trial was unsuccessful'
+			elif prob < threshold and 'interested' == self.instance[3] :
+				success = 0
+				print ('This probability is less than threshold ='+str(threshold)+', therefore reasoner says human does NOT HAVE intention')
+				fn=1
+				print 'Trial was unsuccessful'
+			else:
+				success = 1
+				print ('This probability is less than threshold ='+str(threshold)+', therefore reasoner says human does NOT HAVE intention')
+				print 'Trial was successful'
+				tn=1
+
+		
 		return cost, success, tp, tn, fp, fn
 
 
-	def trial_num(self, num):
-		total_success = 0
-		total_cost = 0
-		total_tp = 0
-		total_tn = 0
-		total_fp = 0
-		total_fn = 0
-		for i in range(num):
-			c, s, tp, tn, fp, fn=self.run()
-			total_cost+=c
-			total_success+=s
-			total_tp+=tp
-			total_tn+=tn
-			total_fp+=fp
-			total_fn+=fn
+	def trial_num(self, num,strategylist):
+		total_success = {}
+		total_cost = {}
+		total_tp = {}
+		total_tn = {}
+		total_fp = {}
+		total_fn = {}
 
-		print 'Average total reward is:', total_cost/num
-		print 'Average total success is: ', float(total_success)/num
-		print 'Precision is ',float(total_tp)/(total_tp + total_fp)
-		print 'Recall is ', float(total_tp)/(total_tp + total_fn)
+		for strategy in strategylist:
+			total_success[strategy] = 0
+			total_cost[strategy] = 0
+			total_tp[strategy]= 0
+			total_tn[strategy]= 0
+			total_fp[strategy]= 0
+			total_fn[strategy]= 0
+
+		for i in range(num):
+			self.create_instance()
+			time, location =self.observe_fact()
+			for strategy in strategylist:
+				#random.seed(i)
+				c, s, tp, tn, fp, fn=self.run(strategy,time,location)
+				total_cost[strategy]+=c
+				total_success[strategy]+=s
+				total_tp[strategy]+=tp
+				total_tn[strategy]+=tn
+				total_fp[strategy]+=fp
+				total_fn[strategy]+=fn
+
+			self.instance =[]
+		for strategy in strategylist:
+			print 'Average total reward for '+strategy+'  is:', total_cost[strategy]/num
+			print 'Average total success for '+strategy+'  is: ', float(total_success[strategy])/num
+			try:
+				print 'Precision for '+strategy+' is ',float(total_tp[strategy])/(total_tp[strategy] + total_fp[strategy])
+				print 'Recall for '+strategy+' is ', float(total_tp[strategy])/(total_tp[strategy] + total_fn[strategy])
+				self.results[strategy]= [total_cost[strategy]/num,float(total_success[strategy])/num,float(total_tp[strategy])/(total_tp[strategy] + total_fp[strategy]), float(total_tp[strategy])/(total_tp[strategy] + total_fn[strategy])]
+			except:
+				print 'Can not divide by zero'
+				self.results[strategy]= [total_cost[strategy]/num,'N/A','N/A', 'N/A']
+
+	def print_results(self):
+		print '\n WRAP UP OF RESULTS:'
+		print self.results
+
+
 def main():
-	Print 'startegies are [reasoning, corrp, LSTM+corrp]'
+	strategy = ['corrp', 'reasoning']
+	print 'startegies are:', strategy
 	Solver()
 	a=Simulator()
-	a.run()
-
+	
+	num=50		 
+	a.trial_num(num,strategy)
+	a.print_results()
 
 
 
