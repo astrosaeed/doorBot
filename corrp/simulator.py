@@ -5,7 +5,7 @@ import numpy as np
 from random import randint
 import random
 from reason import Reason
-
+from learning import Learning
 
 class Simulator:
 	def __init__(self, pomdpfile='program.pomdp'):
@@ -19,6 +19,7 @@ class Simulator:
 		self.policy = Policy(5,4 ,output='program.policy')
 		self.instance = []
 		self.results={}
+		self.learning=Learning('./','interposx.csv','interposy.csv')
 
 
 	def sample (self, alist, distribution):
@@ -212,7 +213,26 @@ class Simulator:
 				print 'Trial was successful'
 				tn=1
 
-		
+		if strategy=='learning':
+			temp,label = self.learning.get_traj()
+			res = self.learning.predict(temp)
+			if res>0.5 and label ==1:
+				print ('the trajectory shows person is interested')
+				success=1
+				tp=1
+			elif res<0.5 and label ==0:
+				
+				print ('the person is not interested')
+				success =1
+				tn=1
+			elif res>0.5 and label ==0:
+				sucess=0
+				fp =1
+				print ('the trajectory shows person is interested')
+			elif res <0.5 and label == 1:
+				fn =1
+				success =0
+				('the person is not interested')
 		return cost, success, tp, tn, fp, fn
 
 
@@ -263,12 +283,13 @@ class Simulator:
 
 
 def main():
-	strategy = ['corrp', 'reasoning']
+	#strategy = ['corrp', 'reasoning','learning']
+	strategy = ['learning']
 	print 'startegies are:', strategy
 	Solver()
 	a=Simulator()
 	
-	num=50		 
+	num=4		 
 	a.trial_num(num,strategy)
 	a.print_results()
 
