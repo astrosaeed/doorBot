@@ -9,12 +9,12 @@ class Reason:
 	def query(self,time,location,lstm):
 		#appending the query line at the end of the plog file
 		f = open(self.filename, 'a+')
-		f.write("\n?{intention=interested}|obs(currenttime="+time+"),obs(atlocation="+location+",obs"+lstm+".")
+		f.write("\n?{intention=interested}|obs(currenttime="+time+"),obs(atlocation="+location+"),obs(classifier="+lstm+").")
 		f.close()
 		temp = subprocess.check_output('plog -t '+self.filename, shell=True)
 		lines = temp.splitlines()
 		prob = lines[3].split()[2]
-		print "\n The probability of {intention=interested|obs"+time+", obs"+location+",obs"+lstm+". =" ,prob
+		print "\n The probability of {intention=interested|obs"+time+", obs"+location+"),obs(classifier="+lstm+"). =" ,prob
 		self.delete()
 		return prob
 

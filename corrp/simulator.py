@@ -129,7 +129,7 @@ class Simulator:
 	def run(self, strategy,time,location):
 		#self.create_instance()
 		#time, location =self.observe_fact()	
-		prob = self.reason.query_nolstm(time, location)
+		
 		#print ('PROB is :'), prob
 		success=0
 		tp=0
@@ -139,6 +139,7 @@ class Simulator:
 		cost =0
 
 		if strategy == 'corrp':
+			prob = self.reason.query_nolstm(time, location)
 			print '\nOur POMDP Model states are: '
 			print self.model.states
 
@@ -186,6 +187,7 @@ class Simulator:
 					break
 
 		if strategy == 'reasoning':
+			prob = self.reason.query_nolstm(time, location)
 			print '\n Strategy is: ', strategy
 			print 'RECAP: our instance is: '
 			print self.instance
@@ -235,6 +237,62 @@ class Simulator:
 				fn =1
 				success =0
 				('CASE IV the person is not interested')
+		
+
+
+		if strategy =='lcorrp':
+			print 'hi'
+			res = self.learning.predict()
+			if res > 0.5:
+				prob = self.reason.query(time, location,'one')
+			else:
+				prob = self.reason.query(time, location,'zero')
+			print '\nOur POMDP Model states are: '
+			print self.model.states
+			print 'bye'
+			s_idx,temp = self.init_state()
+			b = self.init_belief(prob)
+			
+			#print ( 'b shape is,', b.shape )
+			#print b
+
+			while True: 
+				a_idx=self.policy.select_action(b)
+				a = self.model.actions[a_idx]
+			
+				print('action selected',a)
+
+				o_idx = self.random_observe(a_idx)
+				#print ('transition matrix shape is', self.model.trans_mat.shape)
+				#print self.model.trans_mat[a_idx,:,:]
+				#print ('observation matrix shape is', self.model.obs_mat.shape)
+				#print self.model.trans_mat[a_idx,:,:]
+				#print s_idx
+				cost = cost + self.model.reward_mat[a_idx,s_idx]
+				print ('Total reward is,' , cost)		
+				b =self.update(a_idx,o_idx, b)
+				print b
+				
+				
+				if 'report' in a:
+					if 'not_interested' in a and self.trajectory_label == 0:
+						success= 1
+						tn=1
+						print 'Trial was successfull'
+					elif 'report_interested' in a and self.trajectory_label == 1:
+						success= 1
+						tp=1
+						print 'Trial was successful'
+					elif 'report_interested' in a and self.trajectory_label == 0:
+						fp=1
+						print 'Trial was unsuccessful'
+					elif 'not_interested' in a and self.trajectory_label == 1:
+						fn=1
+
+					print ('Finished\n ')
+					
+					break
+						
 		return cost, success, tp, tn, fp, fn
 
 
@@ -285,13 +343,13 @@ class Simulator:
 
 
 def main():
-	#strategy = ['corrp', 'reasoning','learning']
-	strategy = ['lcorrp']
+	strategy = ['corrp', 'reasoning','learning','lcorrp']
+	#strategy = ['corrp']
 	print 'startegies are:', strategy
 	Solver()
 	a=Simulator()
 	
-	num=100	 
+	num=25	 
 	a.trial_num(num,strategy)
 	a.print_results()
 
