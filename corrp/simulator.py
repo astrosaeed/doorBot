@@ -60,8 +60,8 @@ class Simulator:
 
 	def observe_fact(self):
 		print '\nNow, we randomly (uniform) make observations of time and location:'
-		time = random.choice(self.time)
-		location = random.choice (self.location)
+		time = self.instance[1]
+		location = self.instance[2]
 		print ('observed time: '),time
 		print ('observed location: '),location
 		return time, location
@@ -74,7 +74,7 @@ class Simulator:
 		# initialize the beliefs of the states with index=0 evenly
 		
 		int_prob =float(int_prob)
-		init_belief = [1.0 - int_prob, int_prob, 1.0 - int_prob, int_prob, 0]
+		init_belief = [1.0 - int_prob, int_prob, 0, 0, 0]
 		b = np.zeros(len(init_belief))
 		for i in range(len(init_belief)):
 			b[i] = init_belief[i]/sum(init_belief)
