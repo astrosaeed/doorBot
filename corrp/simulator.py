@@ -20,7 +20,7 @@ class Simulator:
 		self.instance = []
 		self.results={}
 		self.learning=Learning('./','interposx.csv','interposy.csv')
-
+		self.trajectory_label=0
 
 	def sample (self, alist, distribution):
 
@@ -44,6 +44,7 @@ class Simulator:
 			place = self.sample(self.location,[0.7,0.3])
 			time =self.sample(self.time,[0.2,0.7,0.1])
 			intention =self.sample(self.intention,[0.9,0.1])
+		self.trajectory_label = self.learning.get_traj()
 
 		print ('Given the probabilty distribution for '+person+', we sample from time, location and intention.')
 		
@@ -51,8 +52,9 @@ class Simulator:
 		self.instance.append(time)
 		self.instance.append(place)
 		self.instance.append(intention)
+		self.instance.append('trajectory with label '+str(self.trajectory_label))
 		print ('Our instance would be (trajectory will be added soon): ')
-		print (self.instance[0],self.instance[1],self.instance[2], self.instance[3])
+		print (self.instance[0],self.instance[1],self.instance[2], self.instance[3],self.instance[4])
 		return self.instance
 
 
@@ -214,25 +216,25 @@ class Simulator:
 				tn=1
 
 		if strategy=='learning':
-			temp,label = self.learning.get_traj()
-			res = self.learning.predict(temp)
-			if res>0.5 and label ==1:
-				print ('the trajectory shows person is interested')
+			
+			res = self.learning.predict()
+			if res>0.5 and self.trajectory_label ==1.0:
+				print ('CASE I the trajectory shows person is interested')
 				success=1
 				tp=1
-			elif res<0.5 and label ==0:
+			elif res<0.5 and self.trajectory_label ==0:
 				
-				print ('the person is not interested')
+				print ('CASE II the person is not interested')
 				success =1
 				tn=1
-			elif res>0.5 and label ==0:
+			elif res>0.5 and self.trajectory_label ==0:
 				sucess=0
 				fp =1
-				print ('the trajectory shows person is interested')
-			elif res <0.5 and label == 1:
+				print ('CASE III the trajectory shows person is interested')
+			elif res <0.5 and self.trajectory_label == 1.0:
 				fn =1
 				success =0
-				('the person is not interested')
+				('CASE IV the person is not interested')
 		return cost, success, tp, tn, fp, fn
 
 
@@ -284,12 +286,12 @@ class Simulator:
 
 def main():
 	#strategy = ['corrp', 'reasoning','learning']
-	strategy = ['learning']
+	strategy = ['lcorrp']
 	print 'startegies are:', strategy
 	Solver()
 	a=Simulator()
 	
-	num=4		 
+	num=100	 
 	a.trial_num(num,strategy)
 	a.print_results()
 
