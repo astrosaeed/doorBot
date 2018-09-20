@@ -241,7 +241,6 @@ class Simulator:
 
 
 		if strategy =='lcorrp':
-			print 'hi'
 			res = self.learning.predict()
 			if res > 0.5:
 				prob = self.reason.query(time, location,'one')
@@ -335,7 +334,7 @@ class Simulator:
 				self.results[strategy]= [total_cost[strategy]/num,float(total_success[strategy])/num,float(total_tp[strategy])/(total_tp[strategy] + total_fp[strategy]), float(total_tp[strategy])/(total_tp[strategy] + total_fn[strategy])]
 			except:
 				print 'Can not divide by zero'
-				self.results[strategy]= [total_cost[strategy]/num,'N/A','N/A', 'N/A']
+				self.results[strategy]= [total_cost[strategy]/num,float(total_success[strategy])/num,'N/A', 'N/A']
 
 	def print_results(self):
 		print '\n WRAP UP OF RESULTS:'
@@ -343,13 +342,13 @@ class Simulator:
 
 
 def main():
-	strategy = ['corrp', 'reasoning','learning','lcorrp']
-	#strategy = ['corrp']
+	#strategy = ['corrp', 'reasoning','learning','lcorrp']
+	strategy = ['reasoning']
 	print 'startegies are:', strategy
 	Solver()
 	a=Simulator()
 	
-	num=25	 
+	num=5
 	a.trial_num(num,strategy)
 	a.print_results()
 

@@ -25,7 +25,7 @@ class Reason:
 		f = open(self.filename, 'a+')
 		f.write("\n?{intention=interested}|obs(currenttime="+time+"),obs(atlocation="+location+").")
 		f.close()
-		temp = subprocess.check_output('plog -t '+self.filename, shell=True)
+		temp = subprocess.check_output('plog -t reason_nolstm.plog', shell=True)
 		lines = temp.splitlines()
 		prob = lines[3].split()[2]
 		print "{intention=interested|obs(currenttime="+time+"), obs(atlocation="+location+") = ",prob
