@@ -187,7 +187,7 @@ class Simulator:
 					break
 
 		if strategy == 'reasoning':
-			prob = self.reason.query_nolstm(time, location)
+			prob = self.reason.query_nolstm(time, location,'reason_nolstm.plog')
 			print '\n Strategy is: ', strategy
 			print 'RECAP: our instance is: '
 			print self.instance
@@ -243,9 +243,9 @@ class Simulator:
 		if strategy =='lcorrp':
 			res = self.learning.predict()
 			if res > 0.5:
-				prob = self.reason.query(time, location,'one')
+				prob = self.reason.query(time, location,'one','reason.plog')
 			else:
-				prob = self.reason.query(time, location,'zero')
+				prob = self.reason.query(time, location,'zero','reason.plog')
 			print '\nOur POMDP Model states are: '
 			print self.model.states
 			print 'bye'

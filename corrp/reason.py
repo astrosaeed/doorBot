@@ -6,39 +6,39 @@ class Reason:
 		pass		
 		self.filename=filename
 
-	def query(self,time,location,lstm):
+	def query(self,time,location,lstm,filename):
 		#appending the query line at the end of the plog file
-		f = open(self.filename, 'a+')
+		f = open(filename, 'a+')
 		f.write("\n?{intention=interested}|obs(currenttime="+time+"),obs(atlocation="+location+"),obs(classifier="+lstm+").")
 		f.close()
-		temp = subprocess.check_output('plog -t '+self.filename, shell=True)
+		temp = subprocess.check_output('plog -t '+filename, shell=True)
 		lines = temp.splitlines()
 		prob = lines[3].split()[2]
 		print "\n The probability of {intention=interested|obs"+time+", obs"+location+"),obs(classifier="+lstm+"). =" ,prob
-		self.delete()
+		self.delete(filename)
 		return prob
 
 
-	def query_nolstm(self,time,location):
+	def query_nolstm(self,time,location,filename):
 		#appending the query line at the end of the plog file
 		print '\nUsing the distributions provided in P-Log and observations, we query the intention of the person:'
-		f = open(self.filename, 'a+')
+		f = open(filename, 'a+')
 		f.write("\n?{intention=interested}|obs(currenttime="+time+"),obs(atlocation="+location+").")
 		f.close()
 		temp = subprocess.check_output('plog -t reason_nolstm.plog', shell=True)
 		lines = temp.splitlines()
 		prob = lines[3].split()[2]
 		print "{intention=interested|obs(currenttime="+time+"), obs(atlocation="+location+") = ",prob
-		self.delete()
+		self.delete(filename)
 		return prob
 
-	def delete(self):
+	def delete(self,filename):
 
 		#deleting the query line for future use
-		readFile = open(self.filename)
+		readFile = open(filename)
 		lines = readFile.readlines()
 		readFile.close()
-		w = open(self.filename,'w')
+		w = open(filename,'w')
 		w.writelines([item for item in lines[:-1]])
 		w.close()
 
