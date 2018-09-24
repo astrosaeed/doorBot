@@ -139,7 +139,7 @@ class Simulator:
 		cost =0
 
 		if strategy == 'corrp':
-			prob = self.reason.query_nolstm(time, location)
+			prob = self.reason.query_nolstm(time, location,'reason_nolstm.plog')
 			print '\nOur POMDP Model states are: '
 			print self.model.states
 
@@ -302,6 +302,9 @@ class Simulator:
 		total_tn = {}
 		total_fp = {}
 		total_fn = {}
+		prec={}
+		recall={}
+		f1={}
 
 		for strategy in strategylist:
 			total_success[strategy] = 0
@@ -329,12 +332,16 @@ class Simulator:
 			print 'Average total reward for '+strategy+'  is:', total_cost[strategy]/num
 			print 'Average total success for '+strategy+'  is: ', float(total_success[strategy])/num
 			try:
-				print 'Precision for '+strategy+' is ',float(total_tp[strategy])/(total_tp[strategy] + total_fp[strategy])
-				print 'Recall for '+strategy+' is ', float(total_tp[strategy])/(total_tp[strategy] + total_fn[strategy])
-				self.results[strategy]= [total_cost[strategy]/num,float(total_success[strategy])/num,float(total_tp[strategy])/(total_tp[strategy] + total_fp[strategy]), float(total_tp[strategy])/(total_tp[strategy] + total_fn[strategy])]
+				prec[strategy] =round(float(total_tp[strategy])/(total_tp[strategy] + total_fp[strategy]),2)
+				print 'Precision for '+strategy+' is ', prec[strategy]
+				recall[strategy] = round(float(total_tp[strategy])/(total_tp[strategy] + total_fn[strategy]),2)
+				print 'Recall for '+strategy+' is ', recall[strategy]
+				f1[strategy] = round(2*prec[strategy]*recall[strategy]/(prec[strategy]+recall[strategy]),2)
+				self.results[strategy]= [round(float(total_success[strategy])/num,2), prec[strategy], recall[strategy],f1[strategy]]
+				
 			except:
 				print 'Can not divide by zero'
-				self.results[strategy]= [total_cost[strategy]/num,float(total_success[strategy])/num,'N/A', 'N/A']
+				self.results[strategy]= [round(float(total_success[strategy])/num,2),'N/A', 'N/A','N/A']
 
 	def print_results(self):
 		print '\n WRAP UP OF RESULTS:'
@@ -342,13 +349,13 @@ class Simulator:
 
 
 def main():
-	#strategy = ['corrp', 'reasoning','learning','lcorrp']
-	strategy = ['reasoning']
+	strategy = ['corrp', 'reasoning','learning','lcorrp']
+	#strategy = ['reasoning']
 	print 'startegies are:', strategy
 	Solver()
 	a=Simulator()
 	
-	num=5
+	num=300
 	a.trial_num(num,strategy)
 	a.print_results()
 
