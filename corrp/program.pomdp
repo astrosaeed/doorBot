@@ -64,15 +64,15 @@ O: report_not_interested
 0.0 0.0 0.0 0.0 1.0
 
 R: * : * : * : * 0.0
-R: move_forward : * : * : *  -3.0 
-R: greet : * : * : *  -1.0 
-R: report_interested: not_forward_not_interested : * : *  -30.0
-R: report_interested: not_forward_interested : * : *  30.0  
-R: report_interested: forward_not_interested : * : *  -30.0
-R: report_interested: forward_interested : * : *  30.0
+R: move_forward : * : * : *  -8.0 
+R: greet : * : * : *  -2.0 
+R: report_interested: not_forward_not_interested : * : *  -50.0
+R: report_interested: not_forward_interested : * : *  90.0  
+R: report_interested: forward_not_interested : * : *  -50.0
+R: report_interested: forward_interested : * : *  90.0
 R: report_interested: term : * : *  0.0  
-R: report_not_interested: not_forward_not_interested : * : *  30.0
-R: report_not_interested: not_forward_interested : * : *  -30.0  
-R: report_not_interested: forward_not_interested : * : *  30.0
-R: report_not_interested: forward_interested : * : *  -30.0  
+R: report_not_interested: not_forward_not_interested : * : *  90.0
+R: report_not_interested: not_forward_interested : * : *  -50.0  
+R: report_not_interested: forward_not_interested : * : *  90.0
+R: report_not_interested: forward_interested : * : *  -50.0  
 R: report_not_interested: term : * : *  0.0  

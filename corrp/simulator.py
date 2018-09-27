@@ -4,6 +4,7 @@ from pomdp_parser import Model
 import numpy as np
 from random import randint
 import random
+random.seed()
 from reason import Reason
 from learning import Learning
 
@@ -44,7 +45,7 @@ class Simulator:
 			place = self.sample(self.location,[0.7,0.3])
 			time =self.sample(self.time,[0.2,0.7,0.1])
 			intention =self.sample(self.intention,[0.9,0.1])
-		self.trajectory_label = self.learning.get_traj()
+		self.trajectory_label = self.learning.get_traj(intention)
 
 		print ('Given the probabilty distribution for '+person+', we sample from time, location and intention.')
 		
@@ -103,11 +104,18 @@ class Simulator:
 
 	
 
-	def random_observe(self, a_idx):
-		if self.model.actions[a_idx]=='move_forward':
-			obs=random.choice(['physical','no_physical'])
-		elif self.model.actions[a_idx]=='greet':
-			obs=random.choice(['verbal','no_verbal'])
+	def observe(self, a_idx,intention):
+
+		if self.model.actions[a_idx]=='move_forward' and intention=='interested':
+			#obs='physical'
+			obs=self.sample(['physical','no_physical'],[0.7,0.3])
+		elif self.model.actions[a_idx]=='move_forward' and intention=='not_interested':
+			obs=obs=self.sample(['physical','no_physical'],[0.3,0.7])
+		elif self.model.actions[a_idx]=='greet' and intention=='interested':
+			#obs = 'verbal'
+			obs=self.sample(['verbal','no_verbal'],[0.7,0.3])
+		elif self.model.actions[a_idx]=='greet' and intention=='not_interested':
+			obs=self.sample(['verbal','no_verbal'],[0.3,0.7])
 		else:
 			obs = 'na'
 		#l=len(self.model.observations)-1
@@ -155,7 +163,7 @@ class Simulator:
 			
 				print('action selected',a)
 
-				o_idx = self.random_observe(a_idx)
+				o_idx = self.observe(a_idx,self.instance[3])
 				#print ('transition matrix shape is', self.model.trans_mat.shape)
 				#print self.model.trans_mat[a_idx,:,:]
 				#print ('observation matrix shape is', self.model.obs_mat.shape)
@@ -220,20 +228,20 @@ class Simulator:
 		if strategy=='learning':
 			
 			res = self.learning.predict()
-			if res>0.5 and self.trajectory_label ==1.0:
+			if res>0.1 and self.trajectory_label ==1.0:
 				print ('CASE I the trajectory shows person is interested')
 				success=1
 				tp=1
-			elif res<0.5 and self.trajectory_label ==0:
+			elif res<0.1 and self.trajectory_label ==0:
 				
 				print ('CASE II the person is not interested')
 				success =1
 				tn=1
-			elif res>0.5 and self.trajectory_label ==0:
+			elif res>0.1 and self.trajectory_label ==0:
 				sucess=0
 				fp =1
 				print ('CASE III the trajectory shows person is interested')
-			elif res <0.5 and self.trajectory_label == 1.0:
+			elif res <0.1 and self.trajectory_label == 1.0:
 				fn =1
 				success =0
 				('CASE IV the person is not interested')
@@ -242,13 +250,13 @@ class Simulator:
 
 		if strategy =='lcorrp':
 			res = self.learning.predict()
-			if res > 0.5:
+			if res > 0.2:
 				prob = self.reason.query(time, location,'one','reason.plog')
 			else:
 				prob = self.reason.query(time, location,'zero','reason.plog')
 			print '\nOur POMDP Model states are: '
 			print self.model.states
-			print 'bye'
+			
 			s_idx,temp = self.init_state()
 			b = self.init_belief(prob)
 			
@@ -261,7 +269,7 @@ class Simulator:
 			
 				print('action selected',a)
 
-				o_idx = self.random_observe(a_idx)
+				o_idx = self.observe(a_idx,self.instance[3])
 				#print ('transition matrix shape is', self.model.trans_mat.shape)
 				#print self.model.trans_mat[a_idx,:,:]
 				#print ('observation matrix shape is', self.model.obs_mat.shape)
@@ -337,25 +345,25 @@ class Simulator:
 				recall[strategy] = round(float(total_tp[strategy])/(total_tp[strategy] + total_fn[strategy]),2)
 				print 'Recall for '+strategy+' is ', recall[strategy]
 				f1[strategy] = round(2*prec[strategy]*recall[strategy]/(prec[strategy]+recall[strategy]),2)
-				self.results[strategy]= [round(float(total_success[strategy])/num,2), prec[strategy], recall[strategy],f1[strategy]]
+				self.results[strategy]= [round(total_cost[strategy]/num,2),round(float(total_success[strategy])/num,2), prec[strategy], recall[strategy],f1[strategy]]
 				
 			except:
 				print 'Can not divide by zero'
-				self.results[strategy]= [round(float(total_success[strategy])/num,2),'N/A', 'N/A','N/A']
+				self.results[strategy]= [round(total_cost[strategy]/num,2),round(float(total_success[strategy])/num,2),'N/A', 'N/A','N/A']
 
 	def print_results(self):
-		print '\n WRAP UP OF RESULTS:'
+		print '\nWRAP UP OF RESULTS:'
 		print self.results
 
 
 def main():
-	strategy = ['corrp', 'reasoning','learning','lcorrp']
-	#strategy = ['reasoning']
+	strategy = ['learning', 'reasoning','corrp','lcorrp']
+	#strategy = ['corrp','lcorrp']
 	print 'startegies are:', strategy
 	Solver()
 	a=Simulator()
 	
-	num=300
+	num=500
 	a.trial_num(num,strategy)
 	a.print_results()
 

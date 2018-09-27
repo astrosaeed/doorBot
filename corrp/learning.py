@@ -9,12 +9,15 @@ class Learning:
 		self.path=path
 		self.xdata = np.genfromtxt(path+filenamex, delimiter=',')
 		self.ydata = np.genfromtxt(path+filenamey, delimiter=',')
-		self.mymodel=load_model('./iter53.h5')
+		self.mymodel=load_model('./iter13.h5')
 		self.newarray=None
 
-	def get_traj(self):
+	def get_traj(self,intention):
 		(m,n)=self.xdata.shape
-		randrow=random.randint(0,m-1)
+		if intention == 'interested':
+			randrow=random.randint(0,63)
+		else:
+			randrow=random.randint(64,m-1)
 		randrow_label=self.xdata[randrow,n-1]
 		extractx=self.xdata[randrow, n-1-30:n-1]
 		label= self.xdata[randrow, n-1]
