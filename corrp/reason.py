@@ -14,14 +14,14 @@ class Reason:
 		temp = subprocess.check_output('plog -t '+filename, shell=True)
 		lines = temp.splitlines()
 		prob = lines[3].split()[2]
-		print "\n The probability of {intention=interested|obs"+time+", obs"+location+"),obs(classifier="+lstm+"). =" ,prob
+		print "\n?{intention=interested|obs(currenttime="+time+"), obs(atlocation="+location+"),obs(classifier="+lstm+"). =" ,prob
 		self.delete(filename)
 		return prob
 
 
 	def query_nolstm(self,time,location,filename):
 		#appending the query line at the end of the plog file
-		print '\nUsing the distributions provided in P-Log and observations, we query the intention of the person:'
+	
 		f = open(filename, 'a+')
 		f.write("\n?{intention=interested}|obs(currenttime="+time+"),obs(atlocation="+location+").")
 		f.close()

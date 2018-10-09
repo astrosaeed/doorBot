@@ -24,7 +24,7 @@ class Learning:
 		extracty=self.ydata[randrow, n-1-30:n-1]
 		extractx=extractx.reshape(1,-1)
 		extracty=extracty.reshape(1,-1)
-		print 'LABEL: ', label
+		#print 'LABEL: ', label
 
 		#self.ydata = np.genfromtxt(path+filenamey, delimiter=',')
 		(p,q)=self.ydata.shape
@@ -34,12 +34,13 @@ class Learning:
 		for i in range(extractx.shape[1]):
 					self.newarray[0,2*i]=extractx[0,i]
 					self.newarray[0,2*i+1]=extracty[0,i]
-		print 'new_array shape',self.newarray.shape
+		#print 'new_array shape',self.newarray.shape
 		self.newarray=self.newarray.reshape(self.newarray.shape[0],int((self.newarray.shape[1]/2)),2)
 		return label
 
 	def	predict(self):
 		predictions = self.mymodel.predict(self.newarray, verbose=1)
+		print 'Classifier output:'
 		print predictions
 		return predictions
 

@@ -7,141 +7,44 @@ import random
 random.seed()
 from reason import Reason
 from learning import Learning
+from simulator import Simulator
 import pandas as pd
 
-class Simulator:
-	def __init__(self, pomdpfile='program.pomdp'):
-		
-		self.time = ['morning','afternoon','evening']
-		self.location = ['classroom','library']
-		self.identity = ['student','professor','visitor'] 
-		self.intention =['interested','not_interested']
-		self.reason =Reason('reason.plog')
-		self.model = Model(filename='program.pomdp', parsing_print_flag=False)
-		self.policy = Policy(5,4 ,output='program.policy')
-		self.instance = []
-		self.results={}
-		self.learning=Learning('./','interposx.csv','interposy.csv')
-		self.trajectory_label=0
-		
 
-	def sample (self, alist, distribution):
+class Exp(Simulator):
 
-		return np.random.choice(alist, p=distribution)
-
-	def create_instance(self,i):
-		random.seed(i)
-
-		person = random.choice(self.identity)
-		print ('\nIdentity (uniform sampling): [student, visitor, professor] : '), person
-#		print ('identity is:'), person
-		if person == 'student':
-			place =self.sample(self.location,[0.4,0.6])
-			time =self.sample(self.time,[0.4,0.4,0.2])
-			intention =self.sample(self.intention,[0.3,0.7])
-		elif person == 'professor':
-			place =self.sample(self.location,[0.9,0.1])
-			time =self.sample(self.time,[0.5,0.4,0.1])
-			intention =self.sample(self.intention,[0.1,0.9])
-		else:
-			place = self.sample(self.location,[0.7,0.3])
-			time =self.sample(self.time,[0.2,0.7,0.1])
-			intention =self.sample(self.intention,[0.9,0.1])
-		self.trajectory_label = self.learning.get_traj(intention)
-
-		print ('Sampling time, location and intention for the identity: '+person)
-		
-		self.instance.append(person)
-		self.instance.append(time)    #1
-		self.instance.append(place)   #2
-		self.instance.append(intention)
-		self.instance.append('trajectory with label '+str(self.trajectory_label))
-		print ('Instance: ')
-		print (self.instance[0],self.instance[1],self.instance[2], self.instance[3],self.instance[4])
-		return self.instance
-
-
-	def observe_fact(self,i):
+	def observe_fact(self,i, acc_prec):
 		random.seed(i)
 		print '\nObservations:'
-		time = self.instance[1]
-		location = self.instance[2]
+		time_local = self.time 
+		location_local = self.location
+		ind_time = time_local.index(self.instance[1])
+		ind_location = location_local.index(self.instance[2])
+		p_time = [0.0, 0.0, 0.0] 
+		p_time[ind_time] = acc_prec
+		print 'acc_prec', acc_prec
+		for i in range(len(p_time)):
+
+			if p_time[i]==0.0:
+				p_time[i]=(1- acc_prec)/2.0
+		print p_time		
+		p_location = [0.0, 0.0]
+		p_location[ind_location] = acc_prec
+		for i in range(len(p_location)):
+			if p_location[i]==0.0:
+				p_location[i]=(1- acc_prec)/1.0
+
+
+		time = self.sample(time_local,p_time)
+		location = self.sample(location_local,p_location)
 		print ('Observed time: '),time
 		print ('Observed location: '),location
 		return time, location
 
-	def init_belief(self, int_prob):
-			
-		l = len(self.model.states)
-		b = np.zeros(l)
 
-		# initialize the beliefs of the states with index=0 evenly
-		
-		int_prob =float(int_prob)
-		init_belief = [1.0 - int_prob, int_prob, 0, 0, 0]
-		b = np.zeros(len(init_belief))
-		for i in range(len(init_belief)):
-			b[i] = init_belief[i]/sum(init_belief)
-		print 'The normalized initial belief would be: '
-		print b
-		return b
-			
-		return b
-
-
-	def get_state_index(self,state):
-
-		return self.model.states.index(state)
-
-
-	def init_state(self):
-		state=random.choice(['not_forward_not_interested','not_forward_interested'])
-		print '\nRandomly selected state from [not_forward_not_interested,not_forward_interested] =',state
-		s_idx = self.get_state_index(state)
-		#print s_idx
-		return s_idx, state
-
-	def get_obs_index(self, obs):
-
-		return self.model.observations.index(obs)
-
-	
-
-	def observe(self, a_idx,intention):
-
-		if self.model.actions[a_idx]=='move_forward' and intention=='interested':
-			#obs='physical'
-			obs=self.sample(['physical','no_physical'],[0.65,0.35])
-		elif self.model.actions[a_idx]=='move_forward' and intention=='not_interested':
-			obs=obs=self.sample(['physical','no_physical'],[0.35,0.65])
-		elif self.model.actions[a_idx]=='greet' and intention=='interested':
-			#obs = 'verbal'
-			obs=self.sample(['verbal','no_verbal'],[0.65,0.35])
-		elif self.model.actions[a_idx]=='greet' and intention=='not_interested':
-			obs=self.sample(['verbal','no_verbal'],[0.35,0.65])
-		else:
-			obs = 'na'
-		#l=len(self.model.observations)-1
-		#o_idx=randint(0,l)
-		o_idx=self.get_obs_index(obs)
-		print ('random observation is: ',self.model.observations[o_idx])
-		return o_idx
-
-	
-
-	def update(self, a_idx,o_idx,b ):
-		b = np.dot(b, self.model.trans_mat[a_idx, :])
-		
-		b = [b[i] * self.model.obs_mat[a_idx, i, o_idx] for i in range(len(self.model.states))]
-		
-		b = b / sum(b)
-		return b
 
 	def run(self, strategy,time,location):
-		#self.create_instance()
-		#time, location =self.observe_fact()	
-		
-		#print ('PROB is :'), prob
+	
 		success=0
 		tp=0
 		tn=0
@@ -284,29 +187,6 @@ class Simulator:
 				print 'Trial was successful'
 				tn=1
 
-		if strategy=='learning':
-			
-			print '\nStrategy is: ',strategy
-			res = self.learning.predict()
-			if res>0.1 and self.trajectory_label ==1.0:
-				print ('CASE I the trajectory shows person is interested')
-				success=1
-				tp=1
-			elif res<0.1 and self.trajectory_label ==0:
-				
-				print ('CASE II the person is not interested')
-				success =1
-				tn=1
-			elif res>0.1 and self.trajectory_label ==0:
-				sucess=0
-				fp =1
-				print ('CASE III the trajectory shows person is interested')
-			elif res <0.1 and self.trajectory_label == 1.0:
-				fn =1
-				success =0
-				('CASE IV the person is not interested')
-		
-
 
 		if strategy =='lcorrp':
 			print '\nStrategy is: ',strategy
@@ -394,72 +274,78 @@ class Simulator:
 						
 		return cost, success, tp, tn, fp, fn
 
-
-	def trial_num(self, num,strategylist):
-		df = pd.DataFrame()
+	def trial_num(self, num,strategylist,acc_prec_dist):
+		dflist=[]
+		for j in range(len(acc_prec_dist)):
+			dflist.append(pd.DataFrame())
+		 
 		
-		for strategy in strategylist:
-			total_success = 0
-			total_cost = 0
-			total_tp= 0
-			total_tn= 0
-			total_fp= 0
-			total_fn= 0
+			for strategy in strategylist:
+				total_success = 0
+				total_cost = 0
+				total_tp= 0
+				total_tn= 0
+				total_fp= 0
+				total_fn= 0
 
-			for i in range(num):
-				self.create_instance(i)
-				time, location =self.observe_fact(i)
-			
+				for i in range(num):
+					self.create_instance(i)
+					time, location =self.observe_fact(i,acc_prec_dist[j])
 				
+					
+					
+					c, s, tp, tn, fp, fn=self.run(strategy,time,location)
+		
+					total_cost+=c
+					total_success+=s
+					total_tp+=tp
+					total_tn+=tn
+					total_fp+=fp
+					total_fn+=fn
+
+				print ('total_tp:'), total_tp
 				
-				c, s, tp, tn, fp, fn=self.run(strategy,time,location)
-	
-				total_cost+=c
-				total_success+=s
-				total_tp+=tp
-				total_tn+=tn
-				total_fp+=fp
-				total_fn+=fn
-
-			print ('total_tp:'), total_tp
-			try:
-
-				df.at[strategy,'Cost']= float(total_cost)/num
-				df.at[strategy,'Success']= float(total_success)/num
-				prec = round(float(total_tp)/(total_tp + total_fp),2)
-				recall = round(float(total_tp)/(total_tp + total_fn),2)
-				df.at[strategy,'Precision'] = prec 
-				df.at[strategy,'Recall'] = recall 
-				df.at[strategy,'F1 Score']= round(2*prec*recall/(prec+recall),2)
+				try:
+					dflist[j].at[strategy,'Cost']= float(total_cost)/num
+					dflist[j].at[strategy,'Success']= float(total_success)/num
+					prec = round(float(total_tp)/(total_tp + total_fp),2)
+					recall = round(float(total_tp)/(total_tp + total_fn),2)
+					dflist[j].at[strategy,'Precision'] = prec 
+					dflist[j].at[strategy,'Recall'] = recall 
+					dflist[j].at[strategy,'F1 Score']= round(2*prec*recall/(prec+recall),2)
+				
+				except:
+					print 'Can not divide by zero'
+					dflist[j].at[strategy,'Precision']= 0
+					dflist[j].at[strategy,'Recall']= 0
+					dflist[j].at[strategy,'F1 Score']= 0
+				
 			
-			except:
-				print 'Can not divide by zero'
-				df.at[strategy,'Precision']= 0
-				df.at[strategy,'Recall']= 0
-				df.at[strategy,'F1 Score']= 0
-			
-		
-			self.instance =[]
-		return df
+				self.instance =[]
+		return dflist
 		
 		
 
-	def print_results(self,df):
+	def print_results(self,dflist):
 		print '\nWRAP UP OF RESULTS:'
-		print df
+		print dflist[0]
+		print dflist[1]
 	
+
+	
+
 
 
 def main():
-	strategy = ['learning', 'reasoning','lreasoning','planning','corrp','lcorrp']
+	strategy = ['reasoning','lreasoning','planning','corrp','lcorrp']
 	#strategy = ['lcorrp']
 	print 'startegies are:', strategy
 	Solver()
-	a=Simulator()
-	
-	num=100
-	a.trial_num(num,strategy)
-	a.print_results()
+	a=Exp()
+	acc_prec_dist= [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9]
+	num=2
+	results=a.trial_num(num,strategy, acc_prec_dist)
+	a.print_results(results)
 
 
 
