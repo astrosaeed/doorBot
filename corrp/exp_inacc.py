@@ -9,6 +9,11 @@ from reason import Reason
 from learning import Learning
 from simulator import Simulator
 import pandas as pd
+import matplotlib
+#matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import csv
+import datetime
 
 
 class Exp(Simulator):
@@ -52,7 +57,7 @@ class Exp(Simulator):
 		fn=0
 		cost =0
 
-		if strategy == 'corrp':
+		if strategy == 'corpp':
 			prob = self.reason.query_nolstm(time, location,'reason_nolstm.plog')
 			print '\nStrategy is: ',strategy
 			print '\nOur POMDP Model states are: '
@@ -188,7 +193,7 @@ class Exp(Simulator):
 				tn=1
 
 
-		if strategy =='lcorrp':
+		if strategy =='lcorpp':
 			print '\nStrategy is: ',strategy
 			res = self.learning.predict()
 			if res > 0.2:
@@ -306,7 +311,8 @@ class Exp(Simulator):
 				print ('total_tp:'), total_tp
 				
 				try:
-					dflist[j].at[strategy,'Cost']= float(total_cost)/num
+					dflist[j].at[strategy,'percent']= acc_prec_dist[j]
+					dflist[j].at[strategy,'Reward']= float(total_cost)/num
 					dflist[j].at[strategy,'Success']= float(total_success)/num
 					prec = round(float(total_tp)/(total_tp + total_fp),2)
 					recall = round(float(total_tp)/(total_tp + total_fn),2)
@@ -322,31 +328,82 @@ class Exp(Simulator):
 				
 			
 				self.instance =[]
+
 		return dflist
 		
 		
 
-	def print_results(self,dflist):
+	def print_results(self,dflist,num,now,saveResults):
 		print '\nWRAP UP OF RESULTS:'
-		print dflist[0]
-		print dflist[1]
-	
+		total_res=pd.concat(dflist)
+		#print pd.concat(dflist).loc['reasoning',['percent','F1 Score']]
+		if saveResults:
+			total_res.to_csv("./plots/"+str(num)+"_inacexp_"+now+".csv", encoding='utf-8', index=True)
 
+		
 	
+	def generate_plot(self,dflist, acc_prec_dist,num,now,pdf):
+		total_res = pd.concat(dflist)
+		print 'generating plots'
+		fig=plt.figure(figsize=(11,4))
+		ax=plt.subplot(131)
+		plt.plot(acc_prec_dist, total_res.loc['lcorpp','F1 Score'], marker='^',linestyle='--',label='lcorpp')
+		plt.plot(acc_prec_dist, total_res.loc['reasoning','F1 Score'],marker='o',linestyle='-',label='reasoning')
+		plt.plot(acc_prec_dist, total_res.loc['lreasoning','F1 Score'], marker='+',linestyle=':',label='lreasoning')
+		plt.ylabel('F1 Score')
+		plt.xlabel('KB accuracy')
+		plt.xlim(0,1)
+		plt.ylim(-0.1,1.1)
+		xleft , xright =ax.get_xlim()
+		ybottom , ytop = ax.get_ylim()
+		ax.set_aspect(aspect=abs((xright-xleft)/(ybottom-ytop)), adjustable=None, anchor=None)
 
+		ax2=plt.subplot(132)
+		plt.plot(acc_prec_dist, total_res.loc['lcorpp','Success'], marker='^',linestyle='--',label='lcorpp')
+		plt.plot(acc_prec_dist, total_res.loc['reasoning','Success'],marker='o',linestyle='-',label='reasoning')
+		plt.plot(acc_prec_dist, total_res.loc['lreasoning','Success'], marker='+',linestyle=':',label='lreasoning')
+		plt.ylabel('Success')
+		plt.xlabel('KB accuracy')
+		plt.xlim(0,1)
+		plt.ylim(-0.1,1.1)
+		xleft , xright =ax2.get_xlim()
+		ybottom , ytop = ax2.get_ylim()
+		ax2.set_aspect(aspect=abs((xright-xleft)/(ybottom-ytop)), adjustable=None, anchor=None)
+		ax2.legend(loc='upper left', bbox_to_anchor=(-0.9, 1.2),  shadow=True, ncol=3)
+
+		ax3=plt.subplot(133)
+		plt.plot(acc_prec_dist, total_res.loc['lcorpp','Reward'], marker='^',linestyle='--',label='lcorpp')
+		plt.plot(acc_prec_dist, total_res.loc['corpp','Reward'],marker='*',linestyle='-',label='corpp')
+		plt.ylabel('Reward')
+		plt.xlabel('KB accuracy')
+		plt.xlim(0,1)
+		#plt.ylim(0,1)
+		plt.legend(loc=0)
+		
+		xleft , xright =ax3.get_xlim()
+		ybottom , ytop = ax3.get_ylim()
+		ax3.set_aspect(aspect=abs((xright-xleft)/(ybottom-ytop)), adjustable=None, anchor=None)
+
+		#fig.tight_layout()
+		if pdf:
+			fig.savefig('./plots/'+str(num)+'_trial_inacexp_'+now+'.pdf')
+		else:
+			fig.savefig('./plots/'+str(num)+'_trial_inacexp_'+now+'.png')
 
 
 def main():
-	strategy = ['reasoning','lreasoning','planning','corrp','lcorrp']
-	#strategy = ['lcorrp']
+	strategy = ['reasoning','lreasoning','planning','corpp','lcorpp']
+	#strategy = ['lcorpp']
 	print 'startegies are:', strategy
 	Solver()
 	a=Exp()
-	acc_prec_dist= [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9]
-	num=2
+	acc_prec_dist= [0.9,0.8,0.7,0.6,0.5,0.4,0.3,0.2,0.1]
+	num=150
+	now = datetime.datetime.now().strftime("%I_%M%p_%B_%d_%Y")
 	results=a.trial_num(num,strategy, acc_prec_dist)
-	a.print_results(results)
-
+	a.print_results(results,num,now,True)
+	a.generate_plot(results,acc_prec_dist,num,now,True)
+	a.generate_plot(results,acc_prec_dist,num,now,False)
 
 
 if __name__=="__main__":

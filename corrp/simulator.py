@@ -149,7 +149,7 @@ class Simulator:
 		fn=0
 		cost =0
 
-		if strategy == 'corrp':
+		if strategy == 'corpp':
 			prob = self.reason.query_nolstm(time, location,'reason_nolstm.plog')
 			print '\nStrategy is: ',strategy
 			print '\nOur POMDP Model states are: '
@@ -308,7 +308,7 @@ class Simulator:
 		
 
 
-		if strategy =='lcorrp':
+		if strategy =='lcorpp':
 			print '\nStrategy is: ',strategy
 			res = self.learning.predict()
 			if res > 0.2:
@@ -451,8 +451,8 @@ class Simulator:
 
 
 def main():
-	strategy = ['learning', 'reasoning','lreasoning','planning','corrp','lcorrp']
-	#strategy = ['lcorrp']
+	strategy = ['learning', 'reasoning','lreasoning','planning','corpp','lcorpp']
+	#strategy = ['lcorpp']
 	print 'startegies are:', strategy
 	Solver()
 	a=Simulator()
